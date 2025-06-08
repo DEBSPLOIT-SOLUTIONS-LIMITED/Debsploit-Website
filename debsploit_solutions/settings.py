@@ -13,6 +13,9 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 
+
+# Reminder: Nafaa Kuedit Email Configuration
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -22,7 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'django.contrib.humanize',  # Added for better number formatting
+    'django.contrib.humanize',  
     
     # Third party apps
     'crispy_forms',
@@ -32,13 +35,13 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
-    'allauth.socialaccount.providers.github',  # Added GitHub provider
+    'allauth.socialaccount.providers.github',  
     'ckeditor',
     'ckeditor_uploader',
     'widget_tweaks',
     'django_extensions',
-    'corsheaders',  # Added to installed apps since it's in middleware
-    'whitenoise.runserver_nostatic',  # For better static file serving
+    'corsheaders',  
+    'whitenoise.runserver_nostatic', 
     
     # Local apps
     'accounts',
@@ -56,7 +59,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'allauth.account.middleware.AccountMiddleware',  # Required for Django Allauth
+    'allauth.account.middleware.AccountMiddleware', 
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
