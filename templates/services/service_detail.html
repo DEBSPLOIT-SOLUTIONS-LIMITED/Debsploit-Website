@@ -1,0 +1,723 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load core_filters %}
+
+{% block title %}{{ service.title }} - {{ site_settings.site_name }}{% endblock %}
+{% block meta_description %}{{ service.description|truncatewords:30 }}{% endblock %}
+{% block body_class %}service-detail-page{% endblock %}
+
+{% block content %}
+<!-- Service Header -->
+<section class="service-header py-5 bg-gradient-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-3">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}" class="text-white-50 text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'services:service_list' %}" class="text-white-50 text-decoration-none">Services</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'services:category_list' slug=service.category.slug %}" class="text-white-50 text-decoration-none">{{ service.category.name }}</a></li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">{{ service.title }}</li>
+                    </ol>
+                </nav>
+                
+                <div class="service-badges mb-3">
+                    <span class="badge bg-white text-primary">{{ service.category.name }}</span>
+                    {% if service.is_featured %}<span class="badge bg-warning"><i class="fas fa-star me-1"></i>Featured</span>{% endif %}
+                    {% if service.difficulty_level %}<span class="badge bg-{{ service.difficulty_level|badge_color }}">{{ service.get_difficulty_level_display }}</span>{% endif %}
+                    {% if service.service_type %}<span class="badge bg-info">{{ service.get_service_type_display }}</span>{% endif %}
+                </div>
+                
+                <h1 class="display-5 fw-bold mb-3" data-aos="fade-up">{{ service.title }}</h1>
+                <p class="lead mb-4" data-aos="fade-up" data-aos-delay="100">{{ service.description|truncatewords:40 }}</p>
+                
+                <!-- Service Meta -->
+                <div class="service-meta d-flex flex-wrap gap-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+                    {% if service.duration %}
+                    <div class="meta-item">
+                        <i class="fas fa-clock me-2"></i>
+                        <span>{{ service.duration }}</span>
+                    </div>
+                    {% endif %}
+                    {% if service.average_rating > 0 %}
+                    <div class="meta-item">
+                        <div class="rating text-warning me-2">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= service.average_rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span>{{ service.average_rating|floatformat:1 }} ({{ reviews_count }} review{{ reviews_count|pluralize }})</span>
+                    </div>
+                    {% endif %}
+                    {% if service.max_participants %}
+                    <div class="meta-item">
+                        <i class="fas fa-users me-2"></i>
+                        <span>Max {{ service.max_participants }} participants</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Price & Action -->
+            <div class="col-lg-4" data-aos="fade-left" data-aos-delay="300">
+                <div class="service-pricing-card bg-white text-dark p-4 rounded-lg shadow-lg">
+                    <div class="pricing-header mb-3">
+                        {% if service.price %}
+                        <div class="price-display">
+                            <span class="current-price h2 fw-bold text-primary mb-0">{{ service.price|currency }}</span>
+                            {% if service.original_price and service.original_price > service.price %}
+                            <span class="original-price text-muted text-decoration-line-through ms-2">{{ service.original_price|currency }}</span>
+                            <div class="discount-badge">
+                                <span class="badge bg-success">Save {{ service.original_price|subtract:service.price|currency }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="price-display">
+                            <span class="contact-pricing h5 text-muted">Contact for pricing</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Enrollment Status -->
+                    {% if user.is_authenticated and user_enrollment %}
+                    <div class="enrollment-status mb-3">
+                        <div class="alert alert-success d-flex align-items-center">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <div>
+                                <strong>You're enrolled!</strong>
+                                <small class="d-block">Enrolled on {{ user_enrollment.enrolled_date|date:"M d, Y" }}</small>
+                            </div>
+                        </div>
+                        <a href="{% url 'dashboard:courses' %}" class="btn btn-primary w-100">
+                            <i class="fas fa-play me-2"></i>Continue Learning
+                        </a>
+                    </div>
+                    {% elif course %}
+                    <div class="enrollment-actions">
+                        {% if course.is_enrollment_open %}
+                            {% if not course.is_full %}
+                            <a href="{% url 'services:enroll_course' course_id=course.id %}" class="btn btn-primary btn-lg w-100 mb-3">
+                                <i class="fas fa-graduation-cap me-2"></i>Enroll Now
+                            </a>
+                            {% else %}
+                            <button class="btn btn-secondary btn-lg w-100 mb-3" disabled>
+                                <i class="fas fa-users me-2"></i>Course Full
+                            </button>
+                            {% endif %}
+                        {% else %}
+                        <button class="btn btn-secondary btn-lg w-100 mb-3" disabled>
+                            <i class="fas fa-lock me-2"></i>Enrollment Closed
+                        </button>
+                        {% endif %}
+                        
+                        <!-- Course Info -->
+                        <div class="course-info small text-muted">
+                            {% if course.start_date %}
+                            <div><i class="fas fa-calendar me-1"></i>Starts: {{ course.start_date|date:"M d, Y" }}</div>
+                            {% endif %}
+                            {% if course.end_date %}
+                            <div><i class="fas fa-calendar-check me-1"></i>Ends: {{ course.end_date|date:"M d, Y" }}</div>
+                            {% endif %}
+                            <div><i class="fas fa-users me-1"></i>{{ course.current_enrollment }}/{{ course.service.max_participants }} enrolled</div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="contact-actions">
+                        <a href="{% url 'core:contact' %}" class="btn btn-primary btn-lg w-100 mb-3">
+                            <i class="fas fa-envelope me-2"></i>Contact Us
+                        </a>
+                        <small class="text-muted">Get in touch for custom solutions</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Service Content -->
+<section class="service-content py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Service Image -->
+                {% if service.featured_image %}
+                <div class="service-featured-image mb-5" data-aos="fade-up">
+                    <img src="{{ service.featured_image.url }}" alt="{{ service.title }}" class="img-fluid rounded-lg shadow-lg">
+                </div>
+                {% endif %}
+                
+                <!-- Service Description -->
+                <div class="service-description mb-5" data-aos="fade-up">
+                    <h2 class="h3 fw-bold mb-4">About This Service</h2>
+                    <div class="content">
+                        {{ service.full_description|safe|default:service.description }}
+                    </div>
+                </div>
+                
+                <!-- What You'll Learn / Features -->
+                {% if service.features or service.learning_outcomes %}
+                <div class="service-features mb-5" data-aos="fade-up">
+                    <h2 class="h3 fw-bold mb-4">
+                        {% if service.service_type == 'course' %}What You'll Learn{% else %}Features{% endif %}
+                    </h2>
+                    <div class="row">
+                        {% if service.features %}
+                        <div class="col-md-6">
+                            <h5 class="fw-semibold mb-3">Key Features</h5>
+                            <ul class="feature-list">
+                                {% for feature in service.features_list %}
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    {{ feature }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        {% if service.learning_outcomes %}
+                        <div class="col-md-6">
+                            <h5 class="fw-semibold mb-3">Learning Outcomes</h5>
+                            <ul class="feature-list">
+                                {% for outcome in service.learning_outcomes_list %}
+                                <li class="mb-2">
+                                    <i class="fas fa-graduation-cap text-primary me-2"></i>
+                                    {{ outcome }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Requirements -->
+                {% if service.requirements %}
+                <div class="service-requirements mb-5" data-aos="fade-up">
+                    <h2 class="h3 fw-bold mb-4">Requirements</h2>
+                    <div class="requirements-content bg-light p-4 rounded-lg">
+                        {{ service.requirements|safe }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Reviews Section -->
+                {% if reviews %}
+                <div class="service-reviews mb-5" data-aos="fade-up">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="h3 fw-bold mb-0">Student Reviews</h2>
+                        {% if review_form %}
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                            <i class="fas fa-star me-2"></i>Write a Review
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Rating Breakdown -->
+                    {% if rating_breakdown %}
+                    <div class="rating-breakdown mb-4 p-4 bg-light rounded-lg">
+                        <div class="row align-items-center">
+                            <div class="col-md-4 text-center">
+                                <div class="overall-rating">
+                                    <div class="rating-number h1 fw-bold text-primary">{{ service.average_rating|floatformat:1 }}</div>
+                                    <div class="rating-stars text-warning mb-2">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= service.average_rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <div class="rating-count text-muted">{{ reviews_count }} review{{ reviews_count|pluralize }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                {% for rating, count in rating_breakdown.items %}
+                                <div class="rating-bar d-flex align-items-center mb-2">
+                                    <span class="rating-label me-2">{{ rating }} star{{ rating|pluralize }}</span>
+                                    <div class="progress flex-grow-1 me-2">
+                                        <div class="progress-bar bg-warning" style="width: {{ count|percentage:reviews_count }}%"></div>
+                                    </div>
+                                    <span class="rating-count">{{ count }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Individual Reviews -->
+                    <div class="reviews-list">
+                        {% for review in reviews %}
+                        <div class="review-item mb-4 p-4 border rounded-lg">
+                            <div class="review-header d-flex justify-content-between align-items-start mb-3">
+                                <div class="reviewer-info d-flex align-items-center">
+                                    {% if review.user.profile_picture %}
+                                    <img src="{{ review.user.profile_picture.url }}" alt="{{ review.user.get_full_name }}" class="rounded-circle me-3" width="50" height="50">
+                                    {% else %}
+                                    <div class="bg-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                        <span class="text-white fw-bold">{{ review.user.first_name.0|upper }}{{ review.user.last_name.0|upper }}</span>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="reviewer-name fw-semibold">{{ review.user.get_full_name }}</div>
+                                        <div class="review-date text-muted small">{{ review.created_at|date:"M d, Y" }}</div>
+                                    </div>
+                                </div>
+                                <div class="review-rating text-warning">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% if review.title %}
+                            <h5 class="review-title fw-semibold mb-2">{{ review.title }}</h5>
+                            {% endif %}
+                            <p class="review-comment mb-0">{{ review.comment }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Instructor Info -->
+                {% if course and course.instructor %}
+                <div class="instructor-card mb-4" data-aos="fade-up">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-chalkboard-teacher me-2"></i>Your Instructor</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="instructor-info d-flex align-items-center mb-3">
+                                {% if course.instructor.profile_picture %}
+                                <img src="{{ course.instructor.profile_picture.url }}" alt="{{ course.instructor.get_full_name }}" class="rounded-circle me-3" width="60" height="60">
+                                {% else %}
+                                <div class="bg-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                    <span class="text-white fw-bold">{{ course.instructor.first_name.0|upper }}{{ course.instructor.last_name.0|upper }}</span>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <div class="instructor-name fw-bold">{{ course.instructor.get_full_name }}</div>
+                                    <div class="instructor-title text-muted">{{ course.instructor.professional_title|default:"Instructor" }}</div>
+                                </div>
+                            </div>
+                            {% if course.instructor.bio %}
+                            <p class="instructor-bio text-muted">{{ course.instructor.bio|truncatewords:30 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Service Stats -->
+                <div class="service-stats-card mb-4" data-aos="fade-up">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-chart-bar me-2"></i>Service Stats</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="stat-item d-flex justify-content-between mb-3">
+                                <span>Difficulty Level</span>
+                                <span class="badge bg-{{ service.difficulty_level|badge_color }}">{{ service.get_difficulty_level_display|default:"Not specified" }}</span>
+                            </div>
+                            {% if service.duration %}
+                            <div class="stat-item d-flex justify-content-between mb-3">
+                                <span>Duration</span>
+                                <span>{{ service.duration }}</span>
+                            </div>
+                            {% endif %}
+                            {% if service.language %}
+                            <div class="stat-item d-flex justify-content-between mb-3">
+                                <span>Language</span>
+                                <span>{{ service.language }}</span>
+                            </div>
+                            {% endif %}
+                            {% if course %}
+                            <div class="stat-item d-flex justify-content-between">
+                                <span>Enrolled Students</span>
+                                <span>{{ course.current_enrollment }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Related Services -->
+                {% if related_services %}
+                <div class="related-services-card" data-aos="fade-up">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-layer-group me-2"></i>Related Services</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            {% for related_service in related_services %}
+                            <div class="related-service-item p-3 {% if not forloop.last %}border-bottom{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    <div class="service-thumb me-3">
+                                        {% if related_service.featured_image %}
+                                        <img src="{{ related_service.featured_image.url }}" alt="{{ related_service.title }}" class="rounded" width="50" height="50" style="object-fit: cover;">
+                                        {% else %}
+                                        <div class="bg-gradient-primary rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                            <i class="{{ related_service.icon|default:'fas fa-cogs' }} text-white"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">
+                                            <a href="{{ related_service.get_absolute_url }}" class="text-decoration-none">{{ related_service.title|truncatewords:5 }}</a>
+                                        </h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">{{ related_service.category.name }}</small>
+                                            {% if related_service.price %}
+                                            <span class="fw-bold text-primary">{{ related_service.price|currency }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Review Modal -->
+{% if review_form %}
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reviewModalLabel">Write a Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="reviewForm" action="{% url 'services:submit_review' service_id=service.id %}" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Rating *</label>
+                        <div class="rating-input" id="ratingInput">
+                            {% for i in "12345" %}
+                            <i class="far fa-star" data-rating="{{ forloop.counter }}"></i>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="rating" id="ratingValue" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Review Title</label>
+                        <input type="text" class="form-control" name="title" id="title" placeholder="Summarize your experience">
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Your Review *</label>
+                        <textarea class="form-control" name="comment" id="comment" rows="4" placeholder="Share your experience with this service" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Service Header */
+.service-header {
+    position: relative;
+    overflow: hidden;
+}
+
+.service-badges .badge {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.service-meta .meta-item {
+    display: flex;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Pricing Card */
+.service-pricing-card {
+    position: sticky;
+    top: 100px;
+}
+
+.price-display {
+    text-align: center;
+}
+
+.discount-badge {
+    margin-top: 0.5rem;
+}
+
+/* Content Styling */
+.service-featured-image img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+}
+
+.feature-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.feature-list li:last-child {
+    border-bottom: none;
+}
+
+/* Review Styles */
+.rating-breakdown .progress {
+    height: 8px;
+}
+
+.rating-input {
+    font-size: 1.5rem;
+    color: var(--text-light);
+    cursor: pointer;
+}
+
+.rating-input i:hover,
+.rating-input i.active {
+    color: #ffc107;
+}
+
+.review-item {
+    transition: all 0.3s ease;
+}
+
+.review-item:hover {
+    box-shadow: var(--shadow-md);
+}
+
+/* Cards */
+.card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Related Services */
+.related-service-item {
+    transition: background-color 0.3s ease;
+}
+
+.related-service-item:hover {
+    background: var(--bg-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .service-pricing-card {
+        position: static;
+        margin-top: 2rem;
+    }
+    
+    .service-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .service-featured-image img {
+        height: 250px;
+    }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.service-content > div {
+    animation: fadeInUp 0.6s ease-out;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Rating input functionality
+    const ratingInput = document.getElementById('ratingInput');
+    const ratingValue = document.getElementById('ratingValue');
+    
+    if (ratingInput) {
+        const stars = ratingInput.querySelectorAll('i');
+        
+        stars.forEach((star, index) => {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.dataset.rating);
+                ratingValue.value = rating;
+                
+                // Update visual state
+                stars.forEach((s, i) => {
+                    if (i < rating) {
+                        s.classList.remove('far');
+                        s.classList.add('fas', 'active');
+                    } else {
+                        s.classList.remove('fas', 'active');
+                        s.classList.add('far');
+                    }
+                });
+            });
+            
+            // Hover effect
+            star.addEventListener('mouseenter', function() {
+                const hoverRating = parseInt(this.dataset.rating);
+                stars.forEach((s, i) => {
+                    if (i < hoverRating) {
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.style.color = '';
+                    }
+                });
+            });
+        });
+        
+        ratingInput.addEventListener('mouseleave', function() {
+            stars.forEach(s => {
+                s.style.color = '';
+            });
+        });
+    }
+    
+    // Review form submission
+    const reviewForm = document.getElementById('reviewForm');
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('reviewModal'));
+                    modal.hide();
+                    
+                    // Show toast notification
+                    showToast('Success!', data.message, 'success');
+                    
+                    // Optionally reload the page to show the new review
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showToast('Error!', data.error || 'Failed to submit review', 'error');
+                }
+            })
+            .catch(error => {
+                showToast('Error!', 'An error occurred. Please try again.', 'error');
+            })
+            .finally(() => {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+    }
+    
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+});
+
+// Toast notification function
+function showToast(title, message, type = 'info') {
+    const toastHtml = `
+        <div class="toast align-items-center text-bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <strong>${title}</strong><br>${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    const toastElement = toastContainer.lastElementChild;
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+    
+    toastElement.addEventListener('hidden.bs.toast', function() {
+        toastElement.remove();
+    });
+}
+</script>
+{% endblocks %}

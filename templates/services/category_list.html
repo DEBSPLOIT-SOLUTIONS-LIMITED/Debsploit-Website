@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load core_filters %}
+
+{% block title %}{{ category.name }} Services - {{ site_settings.site_name }}{% endblock %}
+{% block meta_description %}{{ category.description|truncatewords:30 }}{% endblock %}
+{% block body_class %}category-page{% endblock %}
+
+{% block content %}
+<!-- Category Header -->
+<section class="category-header py-5 bg-gradient-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-3">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}" class="text-white-50 text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'services:service_list' %}" class="text-white-50 text-decoration-none">Services</a></li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">{{ category.name }}</li>
+                    </ol>
+                </nav>
+                
+                <div class="category-icon-header mb-3" data-aos="fade-up">
+                    <div class="category-icon-large me-3">
+                        <i class="{{ category.icon|default:'fas fa-folder' }}"></i>
+                    </div>
+                    <div>
+                        <h1 class="display-4 fw-bold mb-3">{{ category.name }}</h1>
+                        <p class="lead mb-0">{{ category.description }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end" data-aos="fade-left" data-aos-delay="200">
+                <div class="category-stats">
+                    <div class="stat-item p-3 bg-white bg-opacity-10 rounded">
+                        <div class="h4 fw-bold mb-1">{{ services|length }}</div>
+                        <small>Services Available</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Category Navigation -->
+<section class="category-nav py-3 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                    <div class="category-filters d-flex align-items-center flex-wrap">
+                        <span class="me-3 fw-semibold">Categories:</span>
+                        <a href="{% url 'services:service_list' %}" class="btn btn-sm btn-outline-primary me-2 mb-2">All Services</a>
+                        {% for cat in all_categories %}
+                        <a href="{% url 'services:category_list' slug=cat.slug %}" 
+                           class="btn btn-sm {% if cat == category %}btn-primary{% else %}btn-outline-secondary{% endif %} me-2 mb-2">
+                            {{ cat.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Grid -->
+<section class="services-grid py-5">
+    <div class="container">
+        {% if services %}
+        <div class="row">
+            {% for service in services %}
+            <div class="col-lg-4 col-md-6 mb-4 service-item" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
+                <div class="service-card h-100">
+                    {% if service.featured_image %}
+                    <div class="service-image">
+                        <img src="{{ service.featured_image.url }}" alt="{{ service.title }}" class="img-fluid">
+                        <div class="service-overlay">
+                            <div class="service-badges">
+                                {% if service.is_featured %}<span class="badge bg-warning"><i class="fas fa-star me-1"></i>Featured</span>{% endif %}
+                                {% if service.difficulty_level %}<span class="badge bg-{{ service.difficulty_level|badge_color }}">{{ service.get_difficulty_level_display }}</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="service-content">
+                        <div class="service-header mb-3">
+                            <div class="service-icon mb-2">
+                                <i class="{{ service.icon|default:'fas fa-cogs' }}"></i>
+                            </div>
+                            {% if service.service_type %}
+                            <span class="badge bg-info">{{ service.get_service_type_display }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <h5 class="service-title mb-3">
+                            <a href="{{ service.get_absolute_url }}" class="text-decoration-none">{{ service.title }}</a>
+                        </h5>
+                        
+                        <p class="service-description text-muted mb-3">{{ service.description|truncatewords:20 }}</p>
+                        
+                        <div class="service-meta mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ service.duration|default:"Self-paced" }}</small>
+                                {% if service.average_rating > 0 %}
+                                <div class="rating">
+                                    <span class="text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= service.average_rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                    <small class="text-muted ms-1">({{ service.average_rating|floatformat:1 }})</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="service-footer d-flex justify-content-between align-items-center">
+                            <div class="service-price">
+                                {% if service.price %}
+                                <span class="price-current fw-bold text-primary">{{ service.price|currency }}</span>
+                                {% else %}
+                                <span class="price-contact text-muted">Contact for pricing</span>
+                                {% endif %}
+                            </div>
+                            <a href="{{ service.get_absolute_url }}" class="btn btn-primary btn-sm">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <nav aria-label="Services pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page=1"><i class="fas fa-angle-double-left"></i></a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="fas fa-angle-left"></i></a></li>
+                        {% endif %}
+                        
+                        {% for num in paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% else %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="fas fa-angle-right"></i></a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ paginator.num_pages }}"><i class="fas fa-angle-double-right"></i></a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- No Services -->
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center py-5">
+                <i class="fas fa-folder-open fa-4x text-muted mb-4"></i>
+                <h3 class="mb-3">No Services in This Category</h3>
+                <p class="text-muted mb-4">We're working on adding more services to this category. Check back soon!</p>
+                <a href="{% url 'services:service_list' %}" class="btn btn-primary">Browse All Services</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.category-icon-header {
+    display: flex;
+    align-items: center;
+}
+
+.category-icon-large {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+}
+
+.category-nav {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.service-card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 768px) {
+    .category-icon-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .category-icon-large {
+        margin-bottom: 1rem;
+        margin-right: 0 !important;
+    }
+}
+</style>
+{% endblock %}

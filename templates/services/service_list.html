@@ -1,0 +1,640 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load core_filters %}
+
+{% block title %}Services - {{ site_settings.site_name }}{% endblock %}
+{% block meta_description %}Explore our comprehensive technology training and professional services designed to accelerate your digital transformation.{% endblock %}
+{% block body_class %}services-page{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header bg-gradient-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-3">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}" class="text-white-50 text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">Services</li>
+                    </ol>
+                </nav>
+                <h1 class="display-4 fw-bold mb-3" data-aos="fade-up">Our Services</h1>
+                <p class="lead mb-0" data-aos="fade-up" data-aos-delay="100">
+                    Comprehensive technology solutions designed to accelerate your digital transformation journey.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end" data-aos="fade-left" data-aos-delay="200">
+                <div class="header-stats">
+                    <div class="stat-item mb-3 p-3 bg-white bg-opacity-10 rounded">
+                        <div class="h4 fw-bold mb-1">{{ services|length }}+</div>
+                        <small>Services Available</small>
+                    </div>
+                    <div class="stat-item p-3 bg-white bg-opacity-10 rounded">
+                        <div class="h4 fw-bold mb-1">{{ categories.count }}+</div>
+                        <small>Categories</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Filters Section -->
+<section class="filters-section py-4 bg-light border-bottom">
+    <div class="container">
+        <form method="get" class="filters-form" id="servicesFilter">
+            <div class="row align-items-center">
+                <!-- Search -->
+                <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="search" value="{{ current_filters.search }}" placeholder="Search services..." id="searchInput">
+                        <button class="btn btn-outline-primary" type="submit"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+                <!-- Category Filter -->
+                <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
+                    <select class="form-select" name="category" id="categoryFilter">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if current_filters.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Type Filter -->
+                <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
+                    <select class="form-select" name="type" id="typeFilter">
+                        <option value="">All Types</option>
+                        {% for type_code, type_name in service_types %}
+                        <option value="{{ type_code }}" {% if current_filters.type == type_code %}selected{% endif %}>{{ type_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Difficulty Filter -->
+                <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
+                    <select class="form-select" name="difficulty" id="difficultyFilter">
+                        <option value="">All Levels</option>
+                        {% for difficulty_code, difficulty_name in difficulty_levels %}
+                        <option value="{{ difficulty_code }}" {% if current_filters.difficulty == difficulty_code %}selected{% endif %}>{{ difficulty_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Sort -->
+                <div class="col-lg-3 col-md-6">
+                    <select class="form-select" name="sort" id="sortFilter">
+                        <option value="-created_at" {% if current_filters.sort == '-created_at' %}selected{% endif %}>Newest First</option>
+                        <option value="title" {% if current_filters.sort == 'title' %}selected{% endif %}>A-Z</option>
+                        <option value="price" {% if current_filters.sort == 'price' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="-price" {% if current_filters.sort == '-price' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="-average_rating" {% if current_filters.sort == '-average_rating' %}selected{% endif %}>Highest Rated</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Price Range Filter -->
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="number" class="form-control" name="min_price" value="{{ current_filters.min_price }}" placeholder="Min Price" min="0">
+                        </div>
+                        <div class="col-6">
+                            <input type="number" class="form-control" name="max_price" value="{{ current_filters.max_price }}" placeholder="Max Price" min="0">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    {% if current_filters.search or current_filters.category or current_filters.type or current_filters.difficulty or current_filters.min_price or current_filters.max_price %}
+                    <div class="active-filters d-flex align-items-center flex-wrap">
+                        <span class="me-2 fw-semibold">Active Filters:</span>
+                        {% if current_filters.search %}<span class="badge bg-primary me-1 mb-1">Search: "{{ current_filters.search }}"</span>{% endif %}
+                        {% if current_filters.category %}<span class="badge bg-secondary me-1 mb-1">Category</span>{% endif %}
+                        {% if current_filters.type %}<span class="badge bg-info me-1 mb-1">Type</span>{% endif %}
+                        {% if current_filters.difficulty %}<span class="badge bg-warning me-1 mb-1">Level</span>{% endif %}
+                        <a href="{% url 'services:service_list' %}" class="btn btn-sm btn-outline-danger">Clear All</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Featured Services -->
+{% if featured_services %}
+<section class="featured-services py-4 bg-secondary">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 mb-3">
+                <h3 class="fw-bold mb-0"><i class="fas fa-star text-warning me-2"></i>Featured Services</h3>
+            </div>
+        </div>
+        <div class="row">
+            {% for service in featured_services %}
+            <div class="col-lg-4 col-md-6 mb-3">
+                <div class="featured-service-card">
+                    <div class="d-flex align-items-center">
+                        <div class="service-icon me-3">
+                            <i class="{{ service.icon|default:'fas fa-cogs' }}"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1"><a href="{{ service.get_absolute_url }}" class="text-decoration-none">{{ service.title }}</a></h6>
+                            <small class="text-muted">{{ service.category.name }}</small>
+                            <div class="service-price">
+                                <span class="fw-bold text-primary">{{ service.price|currency }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Services Grid -->
+<section class="services-grid py-5">
+    <div class="container">
+        {% if services %}
+        <!-- Results Header -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p class="text-muted mb-0">Showing {{ services|length }} of {{ paginator.count }} services</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="view-toggle btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary active" id="gridView"><i class="fas fa-th-large"></i></button>
+                    <button type="button" class="btn btn-outline-primary" id="listView"><i class="fas fa-list"></i></button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Services Grid View -->
+        <div class="row services-container" id="servicesGrid">
+            {% for service in services %}
+            <div class="col-lg-4 col-md-6 mb-4 service-item" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
+                <div class="service-card h-100">
+                    {% if service.featured_image %}
+                    <div class="service-image">
+                        <img src="{{ service.featured_image.url }}" alt="{{ service.title }}" class="img-fluid">
+                        <div class="service-overlay">
+                            <div class="service-badges">
+                                {% if service.is_featured %}<span class="badge bg-warning"><i class="fas fa-star me-1"></i>Featured</span>{% endif %}
+                                {% if service.difficulty_level %}<span class="badge bg-{{ service.difficulty_level|badge_color }}">{{ service.get_difficulty_level_display }}</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="service-content">
+                        <div class="service-header mb-3">
+                            <div class="service-icon mb-2">
+                                <i class="{{ service.icon|default:'fas fa-cogs' }}"></i>
+                            </div>
+                            <span class="badge bg-primary">{{ service.category.name }}</span>
+                        </div>
+                        
+                        <h5 class="service-title mb-3">
+                            <a href="{{ service.get_absolute_url }}" class="text-decoration-none">{{ service.title }}</a>
+                        </h5>
+                        
+                        <p class="service-description text-muted mb-3">{{ service.description|truncatewords:20 }}</p>
+                        
+                        <div class="service-meta mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ service.duration|default:"Self-paced" }}</small>
+                                {% if service.average_rating > 0 %}
+                                <div class="rating">
+                                    <span class="text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= service.average_rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                    <small class="text-muted ms-1">({{ service.average_rating|floatformat:1 }})</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="service-footer d-flex justify-content-between align-items-center">
+                            <div class="service-price">
+                                {% if service.price %}
+                                <span class="price-current fw-bold text-primary">{{ service.price|currency }}</span>
+                                {% if service.original_price and service.original_price > service.price %}
+                                <span class="price-original text-muted text-decoration-line-through ms-2">{{ service.original_price|currency }}</span>
+                                {% endif %}
+                                {% else %}
+                                <span class="price-contact text-muted">Contact for pricing</span>
+                                {% endif %}
+                            </div>
+                            <a href="{{ service.get_absolute_url }}" class="btn btn-primary btn-sm">Learn More <i class="fas fa-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Services List View -->
+        <div class="services-list d-none" id="servicesList">
+            {% for service in services %}
+            <div class="service-list-item mb-4" data-aos="fade-up">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        {% if service.featured_image %}
+                        <img src="{{ service.featured_image.url }}" alt="{{ service.title }}" class="img-fluid rounded">
+                        {% else %}
+                        <div class="service-placeholder bg-gradient-primary rounded d-flex align-items-center justify-content-center" style="height: 120px;">
+                            <i class="{{ service.icon|default:'fas fa-cogs' }} fa-2x text-white"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <div class="service-badges mb-2">
+                            <span class="badge bg-primary">{{ service.category.name }}</span>
+                            {% if service.is_featured %}<span class="badge bg-warning">Featured</span>{% endif %}
+                            {% if service.service_type %}<span class="badge bg-info">{{ service.get_service_type_display }}</span>{% endif %}
+                        </div>
+                        <h5 class="mb-2"><a href="{{ service.get_absolute_url }}" class="text-decoration-none">{{ service.title }}</a></h5>
+                        <p class="text-muted mb-2">{{ service.description|truncatewords:30 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ service.duration|default:"Self-paced" }}</small>
+                            {% if service.average_rating > 0 %}
+                            <div class="rating">
+                                <span class="text-warning">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= service.average_rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                                <small class="text-muted ms-1">({{ service.average_rating|floatformat:1 }})</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-md-end">
+                        <div class="service-price mb-3">
+                            {% if service.price %}
+                            <div class="price-current h5 fw-bold text-primary mb-0">{{ service.price|currency }}</div>
+                            {% if service.original_price and service.original_price > service.price %}
+                            <div class="price-original text-muted text-decoration-line-through">{{ service.original_price|currency }}</div>
+                            {% endif %}
+                            {% else %}
+                            <div class="price-contact text-muted">Contact for pricing</div>
+                            {% endif %}
+                        </div>
+                        <a href="{{ service.get_absolute_url }}" class="btn btn-primary">Learn More <i class="fas fa-arrow-right ms-1"></i></a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <nav aria-label="Services pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page=1{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-double-left"></i></a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-left"></i></a></li>
+                        {% endif %}
+                        
+                        {% for num in paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a></li>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-right"></i></a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ paginator.num_pages }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-double-right"></i></a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- No Services Found -->
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center py-5">
+                <i class="fas fa-search fa-4x text-muted mb-4"></i>
+                <h3 class="mb-3">No Services Found</h3>
+                <p class="text-muted mb-4">We couldn't find any services matching your criteria.</p>
+                <a href="{% url 'services:service_list' %}" class="btn btn-primary me-2">View All Services</a>
+                <a href="{% url 'core:contact' %}" class="btn btn-outline-primary">Contact Us</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Service Categories -->
+{% if categories %}
+<section class="categories-section py-5 bg-secondary">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center mb-5">
+                <h2 class="display-6 fw-bold mb-3" data-aos="fade-up">Service Categories</h2>
+                <p class="lead text-muted" data-aos="fade-up" data-aos-delay="100">Explore our comprehensive range of technology services.</p>
+            </div>
+        </div>
+        <div class="row">
+            {% for category in categories %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="category-card" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:150 }}">
+                    <div class="category-icon mb-3"><i class="{{ category.icon|default:'fas fa-folder' }}"></i></div>
+                    <h5 class="category-title mb-2">{{ category.name }}</h5>
+                    <p class="category-description text-muted mb-3">{{ category.description|truncatewords:15 }}</p>
+                    <div class="category-stats mb-3">
+                        <span class="badge bg-primary">{{ category.service_set.count }} service{{ category.service_set.count|pluralize }}</span>
+                    </div>
+                    <a href="{% url 'services:category_list' slug=category.slug %}" class="btn btn-outline-primary btn-sm">View Services <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- CTA Section -->
+<section class="cta-section py-5 bg-gradient-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h2 class="display-6 fw-bold mb-3" data-aos="fade-right">Ready to Start Your Journey?</h2>
+                <p class="lead mb-0" data-aos="fade-right" data-aos-delay="100">Can't find what you're looking for? We offer custom solutions tailored to your needs.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end" data-aos="fade-left" data-aos-delay="200">
+                <a href="{% url 'core:contact' %}" class="btn btn-light btn-lg"><i class="fas fa-comments me-2"></i>Contact Us</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Featured Services */
+.featured-service-card {
+    background: var(--bg-card);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.featured-service-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.featured-service-card .service-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--gradient-primary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+}
+
+/* Service Cards */
+.service-card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.service-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.service-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.service-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.3), transparent);
+    padding: 1rem;
+}
+
+.service-content {
+    padding: 1.5rem;
+}
+
+.service-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.service-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--gradient-primary);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.service-title a {
+    color: var(--text-primary);
+    transition: color 0.3s ease;
+}
+
+.service-title a:hover {
+    color: var(--primary-color);
+}
+
+/* List View */
+.service-list-item {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.service-list-item:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+/* Category Cards */
+.category-card {
+    background: var(--bg-card);
+    padding: 2rem;
+    border-radius: var(--border-radius-xl);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.category-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--gradient-primary);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    color: white;
+    font-size: 1.5rem;
+}
+
+/* View Toggle */
+.view-toggle .btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .service-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .service-footer {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .header-stats {
+        text-align: center;
+        margin-top: 2rem;
+    }
+    
+    .filters-section .row > div {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit filters
+    const filterSelects = document.querySelectorAll('#servicesFilter select, #servicesFilter input[type="number"]');
+    filterSelects.forEach(element => {
+        element.addEventListener('change', function() {
+            document.getElementById('servicesFilter').submit();
+        });
+    });
+    
+    // View toggle
+    const gridViewBtn = document.getElementById('gridView');
+    const listViewBtn = document.getElementById('listView');
+    const gridContainer = document.getElementById('servicesGrid');
+    const listContainer = document.getElementById('servicesList');
+    
+    if (gridViewBtn && listViewBtn) {
+        gridViewBtn.addEventListener('click', function() {
+            gridViewBtn.classList.add('active');
+            listViewBtn.classList.remove('active');
+            gridContainer.classList.remove('d-none');
+            listContainer.classList.add('d-none');
+            localStorage.setItem('servicesView', 'grid');
+        });
+        
+        listViewBtn.addEventListener('click', function() {
+            listViewBtn.classList.add('active');
+            gridViewBtn.classList.remove('active');
+            gridContainer.classList.add('d-none');
+            listContainer.classList.remove('d-none');
+            localStorage.setItem('servicesView', 'list');
+        });
+        
+        // Restore saved view
+        const savedView = localStorage.getItem('servicesView');
+        if (savedView === 'list') {
+            listViewBtn.click();
+        }
+    }
+    
+    // Search on Enter
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('servicesFilter').submit();
+            }
+        });
+    }
+    
+    // AJAX Search Suggestions (optional enhancement)
+    let searchTimeout;
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value;
+            
+            if (query.length > 2) {
+                searchTimeout = setTimeout(() => {
+                    fetch(`{% url 'services:service_search' %}?q=${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Implement search suggestions dropdown here if needed
+                            console.log('Search results:', data.results);
+                        })
+                        .catch(error => console.error('Search error:', error));
+                }, 300);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
