@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Testimonials - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="text-center mb-5">
+                <h1 class="display-5 mb-3">What Our Clients Say</h1>
+                <p class="lead text-muted">Read testimonials from our satisfied clients and students.</p>
+            </div>
+            
+            <div class="row">
+                {% for testimonial in testimonials %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex mb-3">
+                                {% if testimonial.avatar %}
+                                <img src="{{ testimonial.avatar.url }}" class="rounded-circle me-3" width="60" height="60" alt="{{ testimonial.name }}">
+                                {% else %}
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                                    <span class="text-white fw-bold" style="font-size: 1.5rem;">{{ testimonial.name.0|upper }}</span>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <h5 class="mb-0">{{ testimonial.name }}</h5>
+                                    {% if testimonial.company %}
+                                    <small class="text-muted">{{ testimonial.company }}</small>
+                                    {% endif %}
+                                    {% if testimonial.role %}
+                                    <small class="text-muted d-block">{{ testimonial.role }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                {% with ''|center:testimonial.rating as range %}
+                                {% for _ in range %}
+                                <i class="fas fa-star text-warning"></i>
+                                {% endfor %}
+                                {% endwith %}
+                            </div>
+                            <blockquote class="mb-0">
+                                <p class="font-italic">"{{ testimonial.content }}"</p>
+                            </blockquote>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <small class="text-muted">
+                                {{ testimonial.created_at|date:"F j, Y" }}
+                                {% if testimonial.course %}
+                                · <a href="{{ testimonial.course.get_absolute_url }}" class="text-decoration-none">{{ testimonial.course.title }}</a>
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            <!-- Add Testimonial Button -->
+            {% if user.is_authenticated %}
+            <div class="text-center mt-5">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#testimonialModal">
+                    <i class="fas fa-plus me-2"></i> Add Your Testimonial
+                </button>
+            </div>
+            {% else %}
+            <div class="text-center mt-5">
+                <a href="{% url 'account_login' %}?next={% url 'blog:testimonials' %}" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt me-2"></i> Login to Add Testimonial
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Testimonial Modal -->
+{% if user.is_authenticated %}
+<div class="modal fade" id="testimonialModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Your Testimonial</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="{{ testimonial_form.name.id_for_label }}" class="form-label">Your Name</label>
+                        {{ testimonial_form.name }}
+                        {% if testimonial_form.name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ testimonial_form.name.errors|join:", " }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ testimonial_form.role.id_for_label }}" class="form-label">Your Role (Optional)</label>
+                        {{ testimonial_form.role }}
+                        {% if testimonial_form.role.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ testimonial_form.role.errors|join:", " }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ testimonial_form.company.id_for_label }}" class="form-label">Company (Optional)</label>
+                        {{ testimonial_form.company }}
+                        {% if testimonial_form.company.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ testimonial_form.company.errors|join:", " }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ testimonial_form.avatar.id_for_label }}" class="form-label">Your Photo (Optional)</label>
+                        {{ testimonial_form.avatar }}
+                        {% if testimonial_form.avatar.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ testimonial_form.avatar.errors|join:", " }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ testimonial_form.rating.id_for_label }}" class="form-label">Rating</label>
+                        <div class="rating-input">
+                            {% for choice in testimonial_form.rating %}
+                            <div class="form-check form-check-inline">
+                                {{ choice.tag }}
+                                <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                    {% with ''|center:choice.choice_value as range %}
+                                    {% for _ in range %}
+                                    <i class="fas fa-star"></i>
+                                    {% endfor %}
+                                    {% endwith %}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if testimonial_form.rating.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ testimonial_form.rating.errors|join:", " }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ testimonial_form.content.id_for_label }}" class="form-label">Your Testimonial</label>
+                        {{ testimonial_form.content }}
+                        {% if testimonial_form.content.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ testimonial_form.content.errors|join:", " }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Testimonial</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Rating stars hover effect
+    $('.rating-input .form-check-input').hover(
+        function() {
+            const rating = $(this).val();
+            $(this).parent().prevAll().find('i').addClass('text-warning');
+            $(this).parent().find('i').addClass('text-warning');
+        },
+        function() {
+            $('.rating-input i').removeClass('text-warning');
+            $('.rating-input .form-check-input:checked').each(function() {
+                const rating = $(this).val();
+                $(this).parent().prevAll().find('i').addClass('text-warning');
+                $(this).parent().find('i').addClass('text-warning');
+            });
+        }
+    );
+
+    // Click event for rating stars
+    $('.rating-input .form-check-input').click(function() {
+        $('.rating-input i').removeClass('text-warning');
+        const rating = $(this).val();
+        $(this).parent().prevAll().find('i').addClass('text-warning');
+        $(this).parent().find('i').addClass('text-warning');
+    });
+});
+</script>
+{% endblock %}
