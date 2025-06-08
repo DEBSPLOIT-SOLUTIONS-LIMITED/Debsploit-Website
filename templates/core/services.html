@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Our Services - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-lg-10 mx-auto text-center">
+            <h1 class="display-4 mb-3">Our Services</h1>
+            {% if services_content.subtitle %}
+            <p class="lead">{{ services_content.subtitle }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Services Content -->
+    {% if services_content %}
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="post-content">
+                        {{ services_content.content|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select name="category" id="category" class="form-select">
+                                <option value="">All Categories</option>
+                                {% for category in service_categories %}
+                                <option value="{{ category.slug }}" {% if current_filters.category == category.slug %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="type" class="form-label">Service Type</label>
+                            <select name="type" id="type" class="form-select">
+                                <option value="">All Types</option>
+                                {% for type in service_types %}
+                                <option value="{{ type.0 }}" {% if current_filters.type == type.0 %}selected{% endif %}>
+                                    {{ type.1 }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="difficulty" class="form-label">Difficulty</label>
+                            <select name="difficulty" id="difficulty" class="form-select">
+                                <option value="">All Levels</option>
+                                {% for level in difficulty_levels %}
+                                <option value="{{ level.0 }}" {% if current_filters.difficulty == level.0 %}selected{% endif %}>
+                                    {{ level.1 }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="sort" class="form-label">Sort By</label>
+                            <select name="sort" id="sort" class="form-select">
+                                <option value="-created_at" {% if current_filters.sort == '-created_at' %}selected{% endif %}>Newest First</option>
+                                <option value="created_at" {% if current_filters.sort == 'created_at' %}selected{% endif %}>Oldest First</option>
+                                <option value="title" {% if current_filters.sort == 'title' %}selected{% endif %}>Title (A-Z)</option>
+                                <option value="-title" {% if current_filters.sort == '-title' %}selected{% endif %}>Title (Z-A)</option>
+                                <option value="price" {% if current_filters.sort == 'price' %}selected{% endif %}>Price (Low to High)</option>
+                                <option value="-price" {% if current_filters.sort == '-price' %}selected{% endif %}>Price (High to Low)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-9">
+                            <input type="search" name="search" class="form-control" placeholder="Search services..." value="{{ current_filters.search }}">
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter me-2"></i> Apply Filters
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services List -->
+    <div class="row">
+        {% if services %}
+            {% for service in services %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    {% if service.featured_image %}
+                    <img src="{{ service.featured_image.url }}" class="card-img-top" alt="{{ service.title }}" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h3 class="card-title h5 mb-0">
+                                <a href="{{ service.get_absolute_url }}" class="text-decoration-none">{{ service.title }}</a>
+                            </h3>
+                            {% if service.price %}
+                            <span class="badge bg-primary rounded-pill">${{ service.price }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-secondary">{{ service.get_service_type_display }}</span>
+                            <span class="badge bg-info text-dark">{{ service.get_difficulty_level_display }}</span>
+                        </div>
+                        <p class="card-text">{{ service.description|truncatechars:150 }}</p>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ service.get_absolute_url }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                            <small class="text-muted">{{ service.category.name }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    No services found matching your criteria.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if current_filters.category %}&category={{ current_filters.category }}{% endif %}{% if current_filters.type %}&type={{ current_filters.type }}{% endif %}{% if current_filters.difficulty %}&difficulty={{ current_filters.difficulty }}{% endif %}{% if current_filters.search %}&search={{ current_filters.search }}{% endif %}{% if current_filters.sort %}&sort={{ current_filters.sort }}{% endif %}">&laquo; First</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_filters.category %}&category={{ current_filters.category }}{% endif %}{% if current_filters.type %}&type={{ current_filters.type }}{% endif %}{% if current_filters.difficulty %}&difficulty={{ current_filters.difficulty }}{% endif %}{% if current_filters.search %}&search={{ current_filters.search }}{% endif %}{% if current_filters.sort %}&sort={{ current_filters.sort }}{% endif %}">Previous</a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}{% if current_filters.category %}&category={{ current_filters.category }}{% endif %}{% if current_filters.type %}&type={{ current_filters.type }}{% endif %}{% if current_filters.difficulty %}&difficulty={{ current_filters.difficulty }}{% endif %}{% if current_filters.search %}&search={{ current_filters.search }}{% endif %}{% if current_filters.sort %}&sort={{ current_filters.sort }}{% endif %}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_filters.category %}&category={{ current_filters.category }}{% endif %}{% if current_filters.type %}&type={{ current_filters.type }}{% endif %}{% if current_filters.difficulty %}&difficulty={{ current_filters.difficulty }}{% endif %}{% if current_filters.search %}&search={{ current_filters.search }}{% endif %}{% if current_filters.sort %}&sort={{ current_filters.sort }}{% endif %}">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if current_filters.category %}&category={{ current_filters.category }}{% endif %}{% if current_filters.type %}&type={{ current_filters.type }}{% endif %}{% if current_filters.difficulty %}&difficulty={{ current_filters.difficulty }}{% endif %}{% if current_filters.search %}&search={{ current_filters.search }}{% endif %}{% if current_filters.sort %}&sort={{ current_filters.sort }}{% endif %}">Last &raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}About Us - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-lg-10 mx-auto text-center">
+            <h1 class="display-4 mb-3">About Debsploit Solutions</h1>
+            {% if about_content.subtitle %}
+            <p class="lead">{{ about_content.subtitle }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- About Content -->
+    {% if about_content %}
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="post-content">
+                        {{ about_content.content|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Company Stats -->
+    {% if company_stats %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">Our Impact</h2>
+            <div class="row">
+                {% for stat in company_stats %}
+                <div class="col-md-3 col-6 mb-4">
+                    <div class="card border-0 text-center h-100">
+                        <div class="card-body">
+                            <h3 class="display-5 text-primary">{{ stat.value }}{% if stat.is_percentage %}%{% endif %}</h3>
+                            <p class="mb-0">{{ stat.label }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Team Section -->
+    {% if team_members %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">Meet Our Team</h2>
+            <div class="row">
+                {% for member in team_members %}
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        {% if member.profile_picture %}
+                        <img src="{{ member.profile_picture.url }}" class="card-img-top" alt="{{ member.name }}">
+                        {% endif %}
+                        <div class="card-body text-center">
+                            <h5 class="card-title mb-1">{{ member.name }}</h5>
+                            <p class="text-muted small mb-2">{{ member.position }}</p>
+                            <p class="card-text small">{{ member.bio|truncatechars:100 }}</p>
+                        </div>
+                        <div class="card-footer bg-white border-0 text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                {% if member.linkedin_url %}
+                                <a href="{{ member.linkedin_url }}" target="_blank" class="text-decoration-none">
+                                    <i class="fab fa-linkedin text-primary"></i>
+                                </a>
+                                {% endif %}
+                                {% if member.twitter_url %}
+                                <a href="{{ member.twitter_url }}" target="_blank" class="text-decoration-none">
+                                    <i class="fab fa-twitter text-info"></i>
+                                </a>
+                                {% endif %}
+                                {% if member.github_url %}
+                                <a href="{{ member.github_url }}" target="_blank" class="text-decoration-none">
+                                    <i class="fab fa-github"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Testimonials -->
+    {% if testimonials %}
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-center mb-4">What Our Clients Say</h2>
+            <div class="row">
+                {% for testimonial in testimonials %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex mb-3">
+                                {% if testimonial.avatar %}
+                                <img src="{{ testimonial.avatar.url }}" class="rounded-circle me-3" width="60" height="60" alt="{{ testimonial.name }}">
+                                {% else %}
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                                    <span class="text-white fw-bold" style="font-size: 1.5rem;">{{ testimonial.name.0|upper }}</span>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <h5 class="mb-0">{{ testimonial.name }}</h5>
+                                    {% if testimonial.company %}
+                                    <small class="text-muted">{{ testimonial.company }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                {% with ''|center:testimonial.rating as range %}
+                                {% for _ in range %}
+                                <i class="fas fa-star text-warning"></i>
+                                {% endfor %}
+                                {% endwith %}
+                            </div>
+                            <blockquote class="mb-0">
+                                <p class="font-italic">"{{ testimonial.content }}"</p>
+                            </blockquote>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
