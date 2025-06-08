@@ -15,3 +15,7 @@ def sub(value, arg):
         return float(value) - float(arg)
     except (ValueError, TypeError):
         return ''
+    
+@register.filter
+def filter_by_slug(queryset, slug):
+    return queryset.filter(slug=slug)

@@ -29,7 +29,8 @@
     {% if site_settings.favicon %}
         <link rel="icon" type="image/x-icon" href="{{ site_settings.favicon.url }}">
     {% else %}
-        <link rel="icon" type="image/x-icon" href="{% load static %}{% static 'images/favicon.ico' %}">
+        {% load static %}
+        <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
     {% endif %}
     
     <!-- CSS Libraries -->
@@ -104,47 +105,66 @@
         {% endif %}
     {% endfor %}
     
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm" id="mainNavbar">
+    <!-- Ultra-Modern Navigation -->
+    <nav class="navbar navbar-expand-lg" id="mainNavbar">
         <div class="container">
-            <!-- Logo -->
+            <!-- Modern Logo -->
             <a class="navbar-brand" href="{% url 'core:home' %}">
                 {% if site_settings.site_logo %}
-                    <img src="{{ site_settings.site_logo.url }}" alt="{{ site_settings.site_name }}" height="40" class="d-inline-block align-text-top me-2">
+                    <img src="{{ site_settings.site_logo.url }}" alt="{{ site_settings.site_name }}" height="40" class="d-inline-block align-text-top">
+                {% else %}
+                    <div class="brand-logo">
+                        <i class="fas fa-code"></i>
+                    </div>
                 {% endif %}
-                <span class="fw-bold text-primary fs-4">{{ site_settings.site_name|default:"Debsploit" }}</span>
+                <span class="fw-bold">{{ site_settings.site_name|default:"Debsploit" }}</span>
             </a>
             
-            <!-- Mobile Toggle -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <!-- Modern Mobile Toggle -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
-            <!-- Navigation Links -->
+            <!-- Navigation Content -->
             <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Main Navigation Links -->
                 <ul class="navbar-nav me-auto">
+                    <!-- Dynamic Navigation Items -->
                     {% for nav_item in main_navigation %}
                     <li class="nav-item">
                         <a class="nav-link {% if request_path == nav_item.url %}active{% endif %}" href="{{ nav_item.url }}">
-                            <i class="{{ nav_item.icon }} me-1"></i>{{ nav_item.name }}
+                            <i class="{{ nav_item.icon }}"></i>
+                            <span>{{ nav_item.name }}</span>
                         </a>
                     </li>
                     {% endfor %}
                     
+                    <!-- Team Link -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'team' %}active{% endif %}" href="{% url 'core:team' %}">
+                            <i class="fas fa-users"></i>
+                            <span>Team</span>
+                        </a>
+                    </li>
+                    
                     <!-- Services Dropdown -->
                     {% if service_categories %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-cogs me-1"></i>Services
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-cogs"></i>
+                            <span>Services</span>
                         </a>
                         <ul class="dropdown-menu">
+                            <li class="dropdown-header">Our Services</li>
                             <li><a class="dropdown-item" href="{% url 'core:services' %}">
-                                <i class="fas fa-list me-2"></i>All Services
+                                <i class="fas fa-list"></i>
+                                All Services
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
                             {% for category in service_categories %}
                             <li><a class="dropdown-item" href="{% url 'core:services' %}?category={{ category.id }}">
-                                <i class="{{ category.icon }} me-2"></i>{{ category.name }}
+                                <i class="{{ category.icon }}"></i>
+                                {{ category.name }}
                             </a></li>
                             {% endfor %}
                         </ul>
@@ -153,10 +173,10 @@
                 </ul>
                 
                 <!-- Search Form -->
-                <form class="d-flex me-3" action="{% url 'core:search' %}" method="get">
+                <form class="d-flex me-3" action="{% url 'core:search' %}" method="get" role="search">
                     <div class="input-group">
-                        <input class="form-control" type="search" name="q" placeholder="Search..." value="{{ request.GET.q }}">
-                        <button class="btn btn-outline-primary" type="submit">
+                        <input class="form-control" type="search" name="q" placeholder="Search..." value="{{ request.GET.q }}" aria-label="Search">
+                        <button class="btn btn-outline-primary" type="submit" aria-label="Search">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
@@ -167,76 +187,83 @@
                     {% if user.is_authenticated %}
                         <!-- Notifications -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-bell"></i>
+                            <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+                                <i class="fas fa-bell fa-lg"></i>
                                 {% if unread_notifications_count > 0 %}
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill">
                                     {{ unread_notifications_count }}
                                 </span>
                                 {% endif %}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end notification-dropdown">
                                 <li class="dropdown-header">
-                                    <strong>Notifications</strong>
+                                    <span>Notifications</span>
                                     {% if unread_notifications_count > 0 %}
-                                    <span class="badge bg-primary ms-2">{{ unread_notifications_count }}</span>
+                                    <span class="badge bg-light text-primary">{{ unread_notifications_count }}</span>
                                     {% endif %}
                                 </li>
-                                <li><hr class="dropdown-divider"></li>
                                 <!-- Notifications will be loaded via AJAX -->
-                                <li class="dropdown-item-text text-center py-3">
-                                    <div class="spinner-border spinner-border-sm" role="status">
+                                <li class="dropdown-item text-center py-3">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
                                         <span class="visually-hidden">Loading...</span>
                                     </div>
+                                    <div class="mt-2 text-muted small">Loading notifications...</div>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-center" href="{% url 'dashboard:notifications' %}">View All</a></li>
+                                <li><a class="dropdown-item text-center fw-semibold" href="{% url 'dashboard:notifications' %}">
+                                    <i class="fas fa-eye"></i>
+                                    View All Notifications
+                                </a></li>
                             </ul>
                         </li>
                         
-                        <!-- User Dropdown -->
+                        <!-- User Profile Dropdown -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 {% if user.profile_picture %}
-                                    <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}" class="rounded-circle me-2" width="32" height="32">
+                                    <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}" class="rounded-circle me-2" width="36" height="36">
                                 {% else %}
-                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                        <span class="text-white fw-bold">{{ user.first_name.0|upper }}{{ user.last_name.0|upper }}</span>
+                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                                        <span class="text-white fw-bold small">{{ user.first_name.0|upper }}{{ user.last_name.0|upper }}</span>
                                     </div>
                                 {% endif %}
-                                <span class="d-none d-md-inline">{{ user.get_full_name|default:user.username }}</span>
+                                <span class="d-none d-lg-inline fw-semibold">{{ user.get_full_name|default:user.username }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li class="dropdown-header">
                                     <div class="fw-bold">{{ user.get_full_name|default:user.username }}</div>
                                     <small class="text-muted">{{ user.get_user_type_display }}</small>
-                                    <div class="small">
+                                    <div class="small mt-1 d-flex align-items-center">
                                         <i class="fas fa-coins text-warning me-1"></i>
-                                        {{ user.points }} points
+                                        <span>{{ user.points }} points</span>
                                     </div>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 {% for nav_item in user_navigation %}
                                 <li><a class="dropdown-item" href="{{ nav_item.url }}">
-                                    <i class="{{ nav_item.icon }} me-2"></i>{{ nav_item.name }}
+                                    <i class="{{ nav_item.icon }}"></i>
+                                    {{ nav_item.name }}
                                 </a></li>
                                 {% endfor %}
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'account_logout' %}">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                <li><a class="dropdown-item text-danger" href="{% url 'account_logout' %}">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Logout
                                 </a></li>
                             </ul>
                         </li>
                     {% else %}
-                        <!-- Login/Register for guests -->
+                        <!-- Guest Navigation -->
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'account_login' %}">
-                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span>Login</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-primary ms-2" href="{% url 'account_signup' %}">
-                                <i class="fas fa-user-plus me-1"></i>Get Started
+                            <a class="btn btn-primary ms-2 px-3" href="{% url 'account_signup' %}">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Get Started</span>
                             </a>
                         </li>
                     {% endif %}
@@ -252,8 +279,9 @@
         <div class="container mt-3">
             {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
                 {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             {% endfor %}
         </div>
@@ -297,6 +325,9 @@
                             <a href="{{ nav_item.url }}" class="text-muted text-decoration-none">{{ nav_item.name }}</a>
                         </li>
                         {% endfor %}
+                        <li class="mb-2">
+                            <a href="{% url 'core:team' %}" class="text-muted text-decoration-none">Team</a>
+                        </li>
                     </ul>
                 </div>
                 
@@ -379,7 +410,7 @@
     </footer>
     
     <!-- Back to Top Button -->
-    <button class="btn btn-primary position-fixed bottom-0 end-0 m-4 rounded-circle d-none" id="backToTop" style="z-index: 1000;">
+    <button class="btn position-fixed bottom-0 end-0 m-4 d-none" id="backToTop" style="z-index: 1000;">
         <i class="fas fa-chevron-up"></i>
     </button>
     
@@ -394,11 +425,21 @@
         AOS.init({
             duration: 800,
             once: true,
+            offset: 100,
         });
         
-        // Back to top button
+        // Navbar scroll effect
         window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('mainNavbar');
             const backToTop = document.getElementById('backToTop');
+            
+            if (window.pageYOffset > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+            
+            // Back to top button
             if (window.pageYOffset > 300) {
                 backToTop.classList.remove('d-none');
             } else {
@@ -406,6 +447,36 @@
             }
         });
         
+        // Mobile menu enhancements
+        const navbarToggler = document.querySelector('.navbar-toggler');
+        const navbarCollapse = document.querySelector('.navbar-collapse');
+        
+        if (navbarToggler && navbarCollapse) {
+            navbarToggler.addEventListener('click', function() {
+                // Add smooth animation for mobile menu
+                if (navbarCollapse.classList.contains('show')) {
+                    navbarCollapse.style.animation = 'slideUp 0.3s ease';
+                } else {
+                    navbarCollapse.style.animation = 'slideDown 0.3s ease';
+                }
+            });
+        }
+        
+        // Add CSS animations for mobile menu
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes slideUp {
+                from { opacity: 1; transform: translateY(0); }
+                to { opacity: 0; transform: translateY(-10px); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Back to top functionality
         document.getElementById('backToTop').addEventListener('click', function() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
@@ -512,6 +583,9 @@
                 })
                 .catch(error => {
                     console.error('Failed to load notifications:', error);
+                    const dropdown = document.querySelector('.notification-dropdown');
+                    const loadingItem = dropdown.querySelector('.spinner-border').closest('li');
+                    loadingItem.innerHTML = '<span class="dropdown-item-text text-muted text-center">Failed to load notifications</span>';
                 });
         }
         
@@ -539,7 +613,10 @@
         }
         
         // Load notifications when dropdown is opened
-        document.querySelector('.notification-dropdown').closest('.dropdown').addEventListener('show.bs.dropdown', loadNotifications);
+        const notificationDropdown = document.querySelector('.notification-dropdown');
+        if (notificationDropdown) {
+            notificationDropdown.closest('.dropdown').addEventListener('show.bs.dropdown', loadNotifications);
+        }
         {% endif %}
     </script>
     

@@ -1,141 +1,1013 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+{% load core_filters %}
 
 {% block title %}About Us - {{ site_settings.site_name }}{% endblock %}
 
+{% block meta_description %}Learn about {{ site_settings.site_name }}, our mission, values, and the expert team dedicated to empowering you with cutting-edge technology skills.{% endblock %}
+
+{% block body_class %}about-page{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <!-- Hero Section -->
-    <div class="row mb-5">
-        <div class="col-lg-10 mx-auto text-center">
-            <h1 class="display-4 mb-3">About Debsploit Solutions</h1>
-            {% if about_content.subtitle %}
-            <p class="lead">{{ about_content.subtitle }}</p>
+<!-- Page Header -->
+<section class="page-header bg-gradient-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-3">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}" class="text-white-50 text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">About</li>
+                    </ol>
+                </nav>
+                <h1 class="display-4 fw-bold mb-3" data-aos="fade-up">About {{ site_settings.site_name|default:"Debsploit Solutions" }}</h1>
+                <p class="lead mb-0" data-aos="fade-up" data-aos-delay="100">
+                    {% if about_content %}
+                        {{ about_content.subtitle|default:"Empowering the next generation of tech professionals with innovative training and solutions." }}
+                    {% else %}
+                        Empowering the next generation of tech professionals with innovative training and solutions.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end" data-aos="fade-left" data-aos-delay="200">
+                <div class="header-decoration">
+                    <i class="fas fa-users fa-5x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mission & Vision Section -->
+<section class="mission-vision py-5">
+    <div class="container">
+        <div class="row">
+            {% if about_content and about_content.content %}
+            <div class="col-12 mb-5">
+                <div class="about-content" data-aos="fade-up">
+                    {{ about_content.content|safe }}
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 mb-5">
+                <div class="row">
+                    <div class="col-lg-6 mb-4" data-aos="fade-up">
+                        <div class="mission-card">
+                            <div class="card-icon mb-3">
+                                <i class="fas fa-bullseye text-primary fa-3x"></i>
+                            </div>
+                            <h3 class="h4 fw-bold mb-3">Our Mission</h3>
+                            <p class="text-muted">
+                                To democratize access to quality technology education and empower individuals with the skills needed to thrive in the digital economy. We believe that everyone deserves the opportunity to learn, grow, and succeed in the tech industry.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4" data-aos="fade-up" data-aos-delay="200">
+                        <div class="vision-card">
+                            <div class="card-icon mb-3">
+                                <i class="fas fa-eye text-secondary fa-3x"></i>
+                            </div>
+                            <h3 class="h4 fw-bold mb-3">Our Vision</h3>
+                            <p class="text-muted">
+                                To be the leading catalyst for digital transformation in our community, creating a generation of skilled tech professionals who drive innovation and positive change in society.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
             {% endif %}
         </div>
     </div>
+</section>
 
-    <!-- About Content -->
-    {% if about_content %}
-    <div class="row mb-5">
-        <div class="col-lg-8 mx-auto">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="post-content">
-                        {{ about_content.content|safe }}
+<!-- Values Section -->
+<section class="values-section py-5 bg-secondary">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center mb-5">
+                <h2 class="display-6 fw-bold mb-3" data-aos="fade-up">Our Core Values</h2>
+                <p class="lead text-muted" data-aos="fade-up" data-aos-delay="100">
+                    The principles that guide everything we do and shape our approach to education and service.
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="value-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="value-icon mb-3">
+                        <i class="fas fa-graduation-cap"></i>
                     </div>
+                    <h5 class="fw-bold mb-3">Excellence in Education</h5>
+                    <p class="text-muted">
+                        We are committed to delivering the highest quality training programs with industry-relevant curriculum and expert instructors.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="value-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="value-icon mb-3">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Integrity & Trust</h5>
+                    <p class="text-muted">
+                        We build lasting relationships based on honesty, transparency, and mutual respect with our students and partners.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="value-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="value-icon mb-3">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Innovation & Growth</h5>
+                    <p class="text-muted">
+                        We continuously evolve our methods and embrace new technologies to provide cutting-edge learning experiences.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="value-card" data-aos="fade-up" data-aos-delay="400">
+                    <div class="value-icon mb-3">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Community Impact</h5>
+                    <p class="text-muted">
+                        We believe in giving back to our community and creating opportunities for underrepresented groups in technology.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="value-card" data-aos="fade-up" data-aos-delay="500">
+                    <div class="value-icon mb-3">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Student Success</h5>
+                    <p class="text-muted">
+                        Your success is our success. We provide comprehensive support to ensure every student achieves their goals.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="value-card" data-aos="fade-up" data-aos-delay="600">
+                    <div class="value-icon mb-3">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Global Perspective</h5>
+                    <p class="text-muted">
+                        We prepare our students for a global marketplace with internationally recognized standards and practices.
+                    </p>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
+</section>
 
-    <!-- Company Stats -->
-    {% if company_stats %}
-    <div class="row mb-5">
-        <div class="col-12">
-            <h2 class="text-center mb-4">Our Impact</h2>
-            <div class="row">
-                {% for stat in company_stats %}
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="card border-0 text-center h-100">
-                        <div class="card-body">
-                            <h3 class="display-5 text-primary">{{ stat.value }}{% if stat.is_percentage %}%{% endif %}</h3>
-                            <p class="mb-0">{{ stat.label }}</p>
+<!-- Statistics Section -->
+{% if company_stats %}
+<section class="stats-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center mb-5">
+                <h2 class="display-6 fw-bold mb-3" data-aos="fade-up">Our Impact in Numbers</h2>
+                <p class="lead text-muted" data-aos="fade-up" data-aos-delay="100">
+                    Real metrics that showcase our commitment to excellence and student success.
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            {% for stat in company_stats %}
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card text-center" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:200 }}">
+                    <div class="stat-icon mb-3">
+                        <i class="{{ stat.icon|default:'fas fa-chart-bar' }} fa-3x"></i>
+                    </div>
+                    <div class="stat-number" data-counter="{{ stat.value }}">{{ stat.value }}</div>
+                    <div class="stat-label">{{ stat.title }}</div>
+                    {% if stat.description %}
+                    <small class="text-muted d-block mt-2">{{ stat.description }}</small>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Team Section -->
+{% if team_members %}
+<section class="team-section py-5 bg-secondary">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center mb-5">
+                <h2 class="display-6 fw-bold mb-3" data-aos="fade-up">Meet Our Expert Team</h2>
+                <p class="lead text-muted" data-aos="fade-up" data-aos-delay="100">
+                    Passionate professionals with diverse backgrounds and extensive industry experience.
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            {% for member in team_members %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="team-member-card" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:150 }}">
+                    <div class="member-image">
+                        {% if member.photo %}
+                        <img src="{{ member.photo.url }}" alt="{{ member.name }}" class="img-fluid">
+                        {% else %}
+                        <div class="placeholder-avatar bg-gradient-primary d-flex align-items-center justify-content-center">
+                            <i class="fas fa-user fa-3x text-white"></i>
                         </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Team Section -->
-    {% if team_members %}
-    <div class="row mb-5">
-        <div class="col-12">
-            <h2 class="text-center mb-4">Meet Our Team</h2>
-            <div class="row">
-                {% for member in team_members %}
-                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                    <div class="card h-100 border-0 shadow-sm">
-                        {% if member.profile_picture %}
-                        <img src="{{ member.profile_picture.url }}" class="card-img-top" alt="{{ member.name }}">
                         {% endif %}
-                        <div class="card-body text-center">
-                            <h5 class="card-title mb-1">{{ member.name }}</h5>
-                            <p class="text-muted small mb-2">{{ member.position }}</p>
-                            <p class="card-text small">{{ member.bio|truncatechars:100 }}</p>
-                        </div>
-                        <div class="card-footer bg-white border-0 text-center">
-                            <div class="d-flex justify-content-center gap-2">
+                        {% if member.linkedin_url or member.twitter_url or member.github_url or member.website_url %}
+                        <div class="member-overlay">
+                            <div class="social-links">
                                 {% if member.linkedin_url %}
-                                <a href="{{ member.linkedin_url }}" target="_blank" class="text-decoration-none">
-                                    <i class="fab fa-linkedin text-primary"></i>
+                                <a href="{{ member.linkedin_url }}" target="_blank" class="social-link" aria-label="{{ member.name }} LinkedIn profile">
+                                    <i class="fab fa-linkedin"></i>
                                 </a>
                                 {% endif %}
                                 {% if member.twitter_url %}
-                                <a href="{{ member.twitter_url }}" target="_blank" class="text-decoration-none">
-                                    <i class="fab fa-twitter text-info"></i>
+                                <a href="{{ member.twitter_url }}" target="_blank" class="social-link" aria-label="{{ member.name }} Twitter profile">
+                                    <i class="fab fa-twitter"></i>
                                 </a>
                                 {% endif %}
                                 {% if member.github_url %}
-                                <a href="{{ member.github_url }}" target="_blank" class="text-decoration-none">
+                                <a href="{{ member.github_url }}" target="_blank" class="social-link" aria-label="{{ member.name }} GitHub profile">
                                     <i class="fab fa-github"></i>
+                                </a>
+                                {% endif %}
+                                {% if member.website_url %}
+                                <a href="{{ member.website_url }}" target="_blank" class="social-link" aria-label="{{ member.name }} website">
+                                    <i class="fas fa-globe"></i>
                                 </a>
                                 {% endif %}
                             </div>
                         </div>
+                        {% endif %}
+                    </div>
+                    <div class="member-info">
+                        <h5 class="member-name mb-1">{{ member.name }}</h5>
+                        <p class="member-position text-primary mb-2">{{ member.position }}</p>
+                        {% if member.specialization %}
+                        <p class="member-specialization text-muted small mb-2">
+                            <i class="fas fa-star me-1"></i>{{ member.specialization }}
+                        </p>
+                        {% endif %}
+                        <p class="member-bio text-muted small">{{ member.bio|truncatewords:25 }}</p>
+                        {% if member.years_experience %}
+                        <div class="member-experience">
+                            <span class="badge bg-light text-dark">
+                                <i class="fas fa-clock me-1"></i>{{ member.years_experience }} years experience
+                            </span>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'core:team' %}" class="btn btn-primary">
+                <i class="fas fa-users me-2"></i>View Full Team
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Why Choose Us Section -->
+<section class="why-choose-us py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6" data-aos="fade-right">
+                <h2 class="display-6 fw-bold mb-4">Why Choose {{ site_settings.site_name|default:"Debsploit Solutions" }}?</h2>
+                <p class="lead mb-4">
+                    We're not just another training provider. We're your partners in success, committed to delivering exceptional value through innovative approaches and personalized support.
+                </p>
+                
+                <div class="features-grid">
+                    <div class="feature-item d-flex mb-4">
+                        <div class="feature-icon me-3">
+                            <i class="fas fa-certificate text-success fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-2">Industry-Recognized Certifications</h6>
+                            <p class="text-muted mb-0">Earn certificates that are valued by top employers worldwide and boost your career prospects.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item d-flex mb-4">
+                        <div class="feature-icon me-3">
+                            <i class="fas fa-laptop-code text-primary fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-2">Hands-On Learning Experience</h6>
+                            <p class="text-muted mb-0">Learn by doing with real projects, practical exercises, and industry simulations.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item d-flex mb-4">
+                        <div class="feature-icon me-3">
+                            <i class="fas fa-user-tie text-warning fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-2">Expert Mentorship</h6>
+                            <p class="text-muted mb-0">Get guidance from industry veterans who bring real-world experience to the classroom.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item d-flex mb-4">
+                        <div class="feature-icon me-3">
+                            <i class="fas fa-briefcase text-info fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-2">Career Support & Placement</h6>
+                            <p class="text-muted mb-0">Comprehensive career services including job placement assistance and interview preparation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6" data-aos="fade-left" data-aos-delay="200">
+                <div class="why-choose-image">
+                    <div class="image-stack">
+                        <div class="image-card bg-gradient-primary">
+                            <i class="fas fa-code fa-4x text-white opacity-75"></i>
+                        </div>
+                        <div class="image-card bg-gradient-secondary">
+                            <i class="fas fa-shield-alt fa-4x text-white opacity-75"></i>
+                        </div>
+                        <div class="image-card bg-gradient-accent">
+                            <i class="fas fa-chart-line fa-4x text-white opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    {% endif %}
+</section>
 
-    <!-- Testimonials -->
-    {% if testimonials %}
-    <div class="row">
-        <div class="col-12">
-            <h2 class="text-center mb-4">What Our Clients Say</h2>
-            <div class="row">
+<!-- Testimonials Section -->
+{% if testimonials %}
+<section class="testimonials-section py-5 bg-secondary">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center mb-5">
+                <h2 class="display-6 fw-bold mb-3" data-aos="fade-up">What Our Students Say</h2>
+                <p class="lead text-muted" data-aos="fade-up" data-aos-delay="100">
+                    Real stories from real people who have transformed their careers with us.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Testimonials Carousel -->
+        <div id="testimonialsCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
                 {% for testimonial in testimonials %}
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <div class="d-flex mb-3">
-                                {% if testimonial.avatar %}
-                                <img src="{{ testimonial.avatar.url }}" class="rounded-circle me-3" width="60" height="60" alt="{{ testimonial.name }}">
-                                {% else %}
-                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
-                                    <span class="text-white fw-bold" style="font-size: 1.5rem;">{{ testimonial.name.0|upper }}</span>
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8">
+                            <div class="testimonial-card-large text-center" data-aos="fade-up">
+                                <div class="testimonial-quote mb-4">
+                                    <i class="fas fa-quote-left fa-2x text-primary opacity-50"></i>
                                 </div>
-                                {% endif %}
-                                <div>
-                                    <h5 class="mb-0">{{ testimonial.name }}</h5>
-                                    {% if testimonial.company %}
-                                    <small class="text-muted">{{ testimonial.company }}</small>
+                                <blockquote class="h5 fw-normal mb-4">
+                                    "{{ testimonial.content }}"
+                                </blockquote>
+                                <div class="testimonial-rating mb-3">
+                                    {% for i in "12345" %}
+                                    <i class="fas fa-star text-warning"></i>
+                                    {% endfor %}
+                                </div>
+                                <div class="testimonial-author d-flex align-items-center justify-content-center">
+                                    {% if testimonial.photo %}
+                                    <img src="{{ testimonial.photo.url }}" alt="{{ testimonial.name }}" class="rounded-circle me-3" width="60" height="60">
+                                    {% else %}
+                                    <div class="bg-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                        <span class="text-white fw-bold h5 mb-0">{{ testimonial.name.0|upper }}</span>
+                                    </div>
                                     {% endif %}
+                                    <div class="text-start">
+                                        <h6 class="mb-0">{{ testimonial.name }}</h6>
+                                        <small class="text-muted">{{ testimonial.position }}</small>
+                                        {% if testimonial.company %}
+                                        <small class="d-block text-muted">{{ testimonial.company }}</small>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
-                            <div class="mb-3">
-                                {% with ''|center:testimonial.rating as range %}
-                                {% for _ in range %}
-                                <i class="fas fa-star text-warning"></i>
-                                {% endfor %}
-                                {% endwith %}
-                            </div>
-                            <blockquote class="mb-0">
-                                <p class="font-italic">"{{ testimonial.content }}"</p>
-                            </blockquote>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
+            
+            <!-- Carousel Controls -->
+            {% if testimonials|length > 1 %}
+            <button class="carousel-control-prev" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="prev" aria-label="Previous testimonial">
+                <i class="fas fa-chevron-left fa-2x text-primary"></i>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="next" aria-label="Next testimonial">
+                <i class="fas fa-chevron-right fa-2x text-primary"></i>
+                <span class="visually-hidden">Next</span>
+            </button>
+            
+            <!-- Carousel Indicators -->
+            <div class="carousel-indicators">
+                {% for testimonial in testimonials %}
+                <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ forloop.counter }}"></button>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
     </div>
-    {% endif %}
-</div>
+</section>
+{% endif %}
+
+<!-- CTA Section -->
+<section class="cta-section py-5 bg-gradient-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h2 class="display-6 fw-bold mb-3" data-aos="fade-right">Ready to Transform Your Career?</h2>
+                <p class="lead mb-0" data-aos="fade-right" data-aos-delay="100">
+                    Join thousands of successful graduates who have launched their tech careers with us. Your journey to success starts here.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end" data-aos="fade-left" data-aos-delay="200">
+                <div class="cta-buttons">
+                    <a href="{% url 'core:services' %}" class="btn btn-light btn-lg me-2 mb-2">
+                        <i class="fas fa-rocket me-2"></i>Explore Programs
+                    </a>
+                    <a href="{% url 'core:contact' %}" class="btn btn-outline-light btn-lg mb-2">
+                        <i class="fas fa-comments me-2"></i>Talk to Us
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Mission & Vision Cards */
+.mission-card, .vision-card {
+    background: var(--bg-card);
+    padding: 2.5rem;
+    border-radius: var(--border-radius-xl);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.mission-card:hover, .vision-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Value Cards */
+.value-card {
+    background: var(--bg-card);
+    padding: 2rem;
+    border-radius: var(--border-radius-xl);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.value-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.value-icon {
+    width: 70px;
+    height: 70px;
+    background: var(--gradient-primary);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    color: white;
+    font-size: 1.5rem;
+}
+
+/* Team Member Cards */
+.team-member-card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.team-member-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.member-image {
+    position: relative;
+    height: 300px;
+    overflow: hidden;
+}
+
+.member-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.placeholder-avatar {
+    width: 100%;
+    height: 100%;
+}
+
+.member-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.team-member-card:hover .member-overlay {
+    opacity: 1;
+}
+
+.team-member-card:hover .member-image img {
+    transform: scale(1.1);
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+}
+
+.social-link {
+    width: 45px;
+    height: 45px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.social-link:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.1);
+}
+
+.member-info {
+    padding: 1.5rem;
+}
+
+.member-name {
+    color: var(--text-primary);
+}
+
+/* Feature Items */
+.feature-item {
+    background: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    transform: translateX(10px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Why Choose Us Image Stack */
+.why-choose-image {
+    position: relative;
+    height: 500px;
+}
+
+.image-stack {
+    position: relative;
+    height: 100%;
+}
+
+.image-card {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-lg);
+    animation: float 6s ease-in-out infinite;
+}
+
+.image-card:nth-child(1) {
+    top: 0;
+    left: 50px;
+    animation-delay: 0s;
+}
+
+.image-card:nth-child(2) {
+    top: 150px;
+    right: 50px;
+    animation-delay: 2s;
+}
+
+.image-card:nth-child(3) {
+    bottom: 0;
+    left: 100px;
+    animation-delay: 4s;
+}
+
+/* Testimonial Carousel */
+.testimonial-card-large {
+    background: var(--bg-card);
+    padding: 3rem;
+    border-radius: var(--border-radius-xl);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.carousel-control-prev, .carousel-control-next {
+    width: 5%;
+}
+
+.carousel-indicators {
+    bottom: -50px;
+}
+
+.carousel-indicators button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: none;
+    background: var(--text-light);
+    opacity: 0.5;
+}
+
+.carousel-indicators button.active {
+    background: var(--primary-color);
+    opacity: 1;
+}
+
+/* Statistics Cards */
+.stat-card {
+    background: var(--bg-card);
+    padding: 2rem;
+    border-radius: var(--border-radius-xl);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-icon {
+    color: var(--primary-color);
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: 900;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+}
+
+.stat-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+/* About Content Styling */
+.about-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.about-content h2, .about-content h3 {
+    color: var(--text-primary);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.about-content p {
+    margin-bottom: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .mission-card, .vision-card, .value-card {
+        margin-bottom: 2rem;
+    }
+    
+    .feature-item {
+        margin-bottom: 1.5rem;
+    }
+    
+    .feature-item:hover {
+        transform: translateY(-3px);
+    }
+    
+    .why-choose-image {
+        display: none;
+    }
+    
+    .image-card {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .testimonial-card-large {
+        padding: 2rem;
+    }
+    
+    .member-image {
+        height: 250px;
+    }
+    
+    .cta-buttons {
+        text-align: center;
+        margin-top: 2rem;
+    }
+    
+    .cta-buttons .btn {
+        display: block;
+        width: 100%;
+        margin: 0 0 1rem 0;
+    }
+    
+    .header-decoration {
+        text-align: center;
+        margin-top: 2rem;
+    }
+}
+
+/* Animation Enhancements */
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+/* Loading States */
+.stat-number {
+    transition: all 0.3s ease;
+}
+
+.carousel-item {
+    transition: transform 0.6s ease-in-out;
+}
+
+/* Hover Enhancements */
+.value-card:hover .value-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.feature-item:hover .feature-icon {
+    transform: scale(1.1);
+}
+
+/* Accessibility Improvements */
+.social-link:focus,
+.btn:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Print Styles */
+@media print {
+    .carousel-control-prev,
+    .carousel-control-next,
+    .carousel-indicators,
+    .cta-section {
+        display: none !important;
+    }
+    
+    .testimonial-card-large {
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Counter animation for statistics
+    const counters = document.querySelectorAll('[data-counter]');
+    
+    const animateCounter = (counter) => {
+        const target = parseInt(counter.getAttribute('data-counter'));
+        const increment = target / 50;
+        let current = 0;
+        
+        const updateCounter = () => {
+            if (current < target) {
+                current += increment;
+                counter.textContent = Math.floor(current);
+                requestAnimationFrame(updateCounter);
+            } else {
+                counter.textContent = target;
+            }
+        };
+        
+        updateCounter();
+    };
+    
+    // Intersection Observer for counter animation
+    const observerOptions = {
+        threshold: 0.5,
+        rootMargin: '0px 0px -100px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounter(entry.target);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+    
+    counters.forEach(counter => {
+        observer.observe(counter);
+    });
+    
+    // Testimonials carousel auto-play
+    const testimonialCarousel = document.getElementById('testimonialsCarousel');
+    if (testimonialCarousel) {
+        const carousel = new bootstrap.Carousel(testimonialCarousel, {
+            interval: 8000,
+            wrap: true,
+            touch: true
+        });
+        
+        // Pause on hover
+        testimonialCarousel.addEventListener('mouseenter', () => {
+            carousel.pause();
+        });
+        
+        testimonialCarousel.addEventListener('mouseleave', () => {
+            carousel.cycle();
+        });
+    }
+    
+    // Smooth scroll for internal links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // Parallax effect for floating elements
+    window.addEventListener('scroll', function() {
+        const scrolled = window.pageYOffset;
+        const parallax = document.querySelectorAll('.image-card');
+        
+        parallax.forEach((element, index) => {
+            const speed = 0.5 + (index * 0.1);
+            const yPos = -(scrolled * speed);
+            element.style.transform = `translateY(${yPos}px)`;
+        });
+    });
+    
+    // Team member card interactions
+    const teamCards = document.querySelectorAll('.team-member-card');
+    teamCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // Feature item animations
+    const featureItems = document.querySelectorAll('.feature-item');
+    featureItems.forEach((item, index) => {
+        item.addEventListener('mouseenter', function() {
+            this.style.background = 'rgba(99, 102, 241, 0.05)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.background = 'var(--bg-card)';
+        });
+    });
+    
+    // Value card hover effects
+    const valueCards = document.querySelectorAll('.value-card');
+    valueCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            const icon = this.querySelector('.value-icon');
+            if (icon) {
+                icon.style.transform = 'scale(1.1) rotate(5deg)';
+            }
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            const icon = this.querySelector('.value-icon');
+            if (icon) {
+                icon.style.transform = 'scale(1) rotate(0deg)';
+            }
+        });
+    });
+    
+    // Lazy loading for images
+    const images = document.querySelectorAll('img[data-src]');
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src;
+                img.classList.remove('lazy');
+                imageObserver.unobserve(img);
+            }
+        });
+    });
+    
+    images.forEach(img => imageObserver.observe(img));
+    
+    // Social link interactions
+    const socialLinks = document.querySelectorAll('.social-link');
+    socialLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            // Add click animation
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1.1)';
+            }, 100);
+        });
+    });
+});
+
+// Additional utility functions
+function highlightSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+        section.classList.add('highlighted');
+        setTimeout(() => {
+            section.classList.remove('highlighted');
+        }, 2000);
+    }
+}
+
+// Performance optimization
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Throttled scroll handler
+const throttledScrollHandler = debounce(() => {
+    // Handle scroll-based animations here
+}, 16);
+
+window.addEventListener('scroll', throttledScrollHandler);
+</script>
 {% endblock %}
