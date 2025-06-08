@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <!-- Dynamic Title and SEO -->
+    <title>{% block title %}{{ site_settings.site_name }}{% if site_settings.site_tagline %} - {{ site_settings.site_tagline }}{% endif %}{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}{{ site_settings.meta_description|default:'Transform your future with cutting-edge technology training and professional tech services' }}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}{{ site_settings.meta_keywords|default:'technology training, programming, web development, cybersecurity, digital marketing, Kenya' }}{% endblock %}">
+    <meta name="author" content="Debsploit Solutions">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="{% block og_title %}{{ site_settings.site_name }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ site_settings.meta_description|default:'Transform your future with cutting-edge technology training and professional tech services' }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ site_settings.site_logo.url|default:'/static/images/og-image.jpg' }}{% endblock %}">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
+    <meta property="twitter:title" content="{% block twitter_title %}{{ site_settings.site_name }}{% endblock %}">
+    <meta property="twitter:description" content="{% block twitter_description %}{{ site_settings.meta_description|default:'Transform your future with cutting-edge technology training and professional tech services' }}{% endblock %}">
+    <meta property="twitter:image" content="{% block twitter_image %}{{ site_settings.site_logo.url|default:'/static/images/og-image.jpg' }}{% endblock %}">
+    
+    <!-- Favicon -->
+    {% if site_settings.favicon %}
+        <link rel="icon" type="image/x-icon" href="{{ site_settings.favicon.url }}">
+    {% else %}
+        <link rel="icon" type="image/x-icon" href="{% load static %}{% static 'images/favicon.ico' %}">
+    {% endif %}
+    
+    <!-- CSS Libraries -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    {% load static %}
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Google Analytics -->
+    {% if site_settings.google_analytics_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ site_settings.google_analytics_id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ site_settings.google_analytics_id }}');
+    </script>
+    {% endif %}
+    
+    <!-- Facebook Pixel -->
+    {% if site_settings.facebook_pixel_id %}
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '{{ site_settings.facebook_pixel_id }}');
+        fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id={{ site_settings.facebook_pixel_id }}&ev=PageView&noscript=1"
+    /></noscript>
+    {% endif %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    
+    <!-- Maintenance Mode Banner -->
+    {% if maintenance_mode and user.is_staff %}
+    <div class="alert alert-warning alert-dismissible fade show m-0 text-center" role="alert">
+        <i class="fas fa-tools me-2"></i>
+        <strong>Maintenance Mode Active</strong> - The site is currently in maintenance mode. Only staff can see this message.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+    
+    <!-- Announcements -->
+    {% for announcement in current_announcements %}
+        {% if announcement.show_on_homepage or request.resolver_match.url_name != 'home' %}
+        <div class="alert alert-{{ announcement.announcement_type }} alert-dismissible fade show m-0 text-center announcement-banner" role="alert">
+            <div class="container">
+                <strong>{{ announcement.title }}</strong>
+                {% if announcement.message %}
+                    <span class="d-block d-md-inline ms-md-2">{{ announcement.message }}</span>
+                {% endif %}
+                {% if announcement.action_url and announcement.action_text %}
+                    <a href="{{ announcement.action_url }}" class="btn btn-sm btn-outline-dark ms-2">{{ announcement.action_text }}</a>
+                {% endif %}
+                {% if announcement.is_dismissible %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+    
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm" id="mainNavbar">
+        <div class="container">
+            <!-- Logo -->
+            <a class="navbar-brand" href="{% url 'core:home' %}">
+                {% if site_settings.site_logo %}
+                    <img src="{{ site_settings.site_logo.url }}" alt="{{ site_settings.site_name }}" height="40" class="d-inline-block align-text-top me-2">
+                {% endif %}
+                <span class="fw-bold text-primary fs-4">{{ site_settings.site_name|default:"Debsploit" }}</span>
+            </a>
+            
+            <!-- Mobile Toggle -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Navigation Links -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% for nav_item in main_navigation %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request_path == nav_item.url %}active{% endif %}" href="{{ nav_item.url }}">
+                            <i class="{{ nav_item.icon }} me-1"></i>{{ nav_item.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                    
+                    <!-- Services Dropdown -->
+                    {% if service_categories %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-cogs me-1"></i>Services
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'core:services' %}">
+                                <i class="fas fa-list me-2"></i>All Services
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% for category in service_categories %}
+                            <li><a class="dropdown-item" href="{% url 'core:services' %}?category={{ category.id }}">
+                                <i class="{{ category.icon }} me-2"></i>{{ category.name }}
+                            </a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <!-- Search Form -->
+                <form class="d-flex me-3" action="{% url 'core:search' %}" method="get">
+                    <div class="input-group">
+                        <input class="form-control" type="search" name="q" placeholder="Search..." value="{{ request.GET.q }}">
+                        <button class="btn btn-outline-primary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- User Menu -->
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <!-- Notifications -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-bell"></i>
+                                {% if unread_notifications_count > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ unread_notifications_count }}
+                                </span>
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end notification-dropdown">
+                                <li class="dropdown-header">
+                                    <strong>Notifications</strong>
+                                    {% if unread_notifications_count > 0 %}
+                                    <span class="badge bg-primary ms-2">{{ unread_notifications_count }}</span>
+                                    {% endif %}
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <!-- Notifications will be loaded via AJAX -->
+                                <li class="dropdown-item-text text-center py-3">
+                                    <div class="spinner-border spinner-border-sm" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-center" href="{% url 'dashboard:notifications' %}">View All</a></li>
+                            </ul>
+                        </li>
+                        
+                        <!-- User Dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                                {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}" class="rounded-circle me-2" width="32" height="32">
+                                {% else %}
+                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                        <span class="text-white fw-bold">{{ user.first_name.0|upper }}{{ user.last_name.0|upper }}</span>
+                                    </div>
+                                {% endif %}
+                                <span class="d-none d-md-inline">{{ user.get_full_name|default:user.username }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li class="dropdown-header">
+                                    <div class="fw-bold">{{ user.get_full_name|default:user.username }}</div>
+                                    <small class="text-muted">{{ user.get_user_type_display }}</small>
+                                    <div class="small">
+                                        <i class="fas fa-coins text-warning me-1"></i>
+                                        {{ user.points }} points
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                {% for nav_item in user_navigation %}
+                                <li><a class="dropdown-item" href="{{ nav_item.url }}">
+                                    <i class="{{ nav_item.icon }} me-2"></i>{{ nav_item.name }}
+                                </a></li>
+                                {% endfor %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'account_logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <!-- Login/Register for guests -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'account_login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-primary ms-2" href="{% url 'account_signup' %}">
+                                <i class="fas fa-user-plus me-1"></i>Get Started
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="{% block main_class %}{% endblock %}">
+        <!-- Messages -->
+        {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <!-- Company Info -->
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h5 class="fw-bold mb-3">
+                        {% if site_settings.site_logo %}
+                            <img src="{{ site_settings.site_logo.url }}" alt="{{ site_settings.site_name }}" height="30" class="me-2">
+                        {% endif %}
+                        {{ site_settings.site_name|default:"Debsploit Solutions" }}
+                    </h5>
+                    <p class="text-muted">{{ site_settings.site_tagline|default:"Empowering communities with digital skills and professional tech services for a better tomorrow." }}</p>
+                    
+                    <!-- Social Links -->
+                    {% if social_links %}
+                    <div class="social-links mt-3">
+                        {% for social in social_links %}
+                        <a href="{{ social.url }}" class="text-light me-3" target="_blank" rel="noopener" title="{{ social.name }}">
+                            <i class="{{ social.icon }} fa-lg"></i>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Quick Links -->
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Quick Links</h6>
+                    <ul class="list-unstyled">
+                        {% for nav_item in main_navigation %}
+                        <li class="mb-2">
+                            <a href="{{ nav_item.url }}" class="text-muted text-decoration-none">{{ nav_item.name }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <!-- Services -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Our Services</h6>
+                    <ul class="list-unstyled">
+                        {% for category in service_categories %}
+                        <li class="mb-2">
+                            <a href="{% url 'core:services' %}?category={{ category.id }}" class="text-muted text-decoration-none">
+                                {{ category.name }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                        <li class="mb-2">
+                            <a href="{% url 'core:services' %}" class="text-primary text-decoration-none">View All Services</a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Contact Info -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Contact Info</h6>
+                    <ul class="list-unstyled">
+                        {% if site_settings.contact_email %}
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2 text-primary"></i>
+                            <a href="mailto:{{ site_settings.contact_email }}" class="text-muted text-decoration-none">
+                                {{ site_settings.contact_email }}
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if site_settings.contact_phone %}
+                        <li class="mb-2">
+                            <i class="fas fa-phone me-2 text-primary"></i>
+                            <a href="tel:{{ site_settings.contact_phone }}" class="text-muted text-decoration-none">
+                                {{ site_settings.contact_phone }}
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if site_settings.contact_address %}
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                            <span class="text-muted">{{ site_settings.contact_address }}</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Newsletter Signup -->
+            <div class="row mt-4 pt-4 border-top border-secondary">
+                <div class="col-md-8">
+                    <h6 class="fw-bold mb-3">Stay Updated</h6>
+                    <p class="text-muted mb-3">Subscribe to our newsletter for the latest updates on courses and tech insights.</p>
+                </div>
+                <div class="col-md-4">
+                    <form id="newsletter-form" class="d-flex">
+                        <input type="email" class="form-control me-2" placeholder="Your email address" required>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Copyright -->
+            <div class="row mt-4 pt-4 border-top border-secondary">
+                <div class="col-md-6">
+                    <p class="text-muted mb-0">
+                        &copy; {{ current_year }} {{ site_settings.site_name|default:"Debsploit Solutions" }}. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="{% url 'core:page_detail' slug='privacy' %}" class="text-muted text-decoration-none me-3">Privacy Policy</a>
+                    <a href="{% url 'core:page_detail' slug='terms' %}" class="text-muted text-decoration-none">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Back to Top Button -->
+    <button class="btn btn-primary position-fixed bottom-0 end-0 m-4 rounded-circle d-none" id="backToTop" style="z-index: 1000;">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Initialize AOS (Animate On Scroll)
+        AOS.init({
+            duration: 800,
+            once: true,
+        });
+        
+        // Back to top button
+        window.addEventListener('scroll', function() {
+            const backToTop = document.getElementById('backToTop');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.remove('d-none');
+            } else {
+                backToTop.classList.add('d-none');
+            }
+        });
+        
+        document.getElementById('backToTop').addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        // Newsletter signup
+        document.getElementById('newsletter-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = this.querySelector('input[type="email"]').value;
+            const button = this.querySelector('button');
+            const originalHtml = button.innerHTML;
+            
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            button.disabled = true;
+            
+            fetch('{% url "core:newsletter_signup" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ email: email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.reset();
+                    showToast('Success!', data.message, 'success');
+                } else {
+                    showToast('Error!', data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('Error!', 'Failed to subscribe. Please try again.', 'error');
+            })
+            .finally(() => {
+                button.innerHTML = originalHtml;
+                button.disabled = false;
+            });
+        });
+        
+        // Toast notification function
+        function showToast(title, message, type = 'info') {
+            const toastHtml = `
+                <div class="toast align-items-center text-bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <strong>${title}</strong><br>${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '1055';
+                document.body.appendChild(toastContainer);
+            }
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        }
+        
+        // Load notifications (for authenticated users)
+        {% if user.is_authenticated %}
+        function loadNotifications() {
+            fetch('{% url "dashboard:api_notifications" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const dropdown = document.querySelector('.notification-dropdown');
+                    const loadingItem = dropdown.querySelector('.spinner-border').closest('li');
+                    
+                    if (data.notifications.length > 0) {
+                        let notificationsHtml = '';
+                        data.notifications.slice(0, 5).forEach(notification => {
+                            notificationsHtml += `
+                                <li>
+                                    <a class="dropdown-item ${!notification.is_read ? 'bg-light' : ''}" href="#">
+                                        <div class="d-flex align-items-start">
+                                            <i class="fas fa-${getNotificationIcon(notification.notification_type)} me-2 mt-1 text-primary"></i>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold">${notification.title}</div>
+                                                <small class="text-muted">${notification.message}</small>
+                                                <br><small class="text-muted">${timeAgo(notification.created_at)}</small>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                            `;
+                        });
+                        loadingItem.outerHTML = notificationsHtml;
+                    } else {
+                        loadingItem.innerHTML = '<span class="dropdown-item-text text-muted text-center">No new notifications</span>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to load notifications:', error);
+                });
+        }
+        
+        function getNotificationIcon(type) {
+            const icons = {
+                'task_assigned': 'tasks',
+                'task_completed': 'check-circle',
+                'points_earned': 'coins',
+                'achievement_unlocked': 'trophy',
+                'course_enrolled': 'graduation-cap',
+                'system_update': 'info-circle'
+            };
+            return icons[type] || 'bell';
+        }
+        
+        function timeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        }
+        
+        // Load notifications when dropdown is opened
+        document.querySelector('.notification-dropdown').closest('.dropdown').addEventListener('show.bs.dropdown', loadNotifications);
+        {% endif %}
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

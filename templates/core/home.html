@@ -1,0 +1,459 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ site_settings.site_name }} - {{ site_settings.site_tagline }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="%23ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle cx="200" cy="200" r="100" fill="url(%23a)"/><circle cx="800" cy="300" r="150" fill="url(%23a)"/><circle cx="400" cy="700" r="120" fill="url(%23a)"/></svg>');
+        animation: float 20s ease-in-out infinite;
+    }
+    
+    .service-icon {
+        background: linear-gradient(135deg, #0066FF 0%, #00D4AA 100%);
+    }
+    
+    .testimonial-card {
+        height: 100%;
+        transition: transform 0.3s ease;
+    }
+    
+    .testimonial-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .rating-stars {
+        color: #ffc107;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div data-aos="fade-right">
+                    <h1 class="display-4 fw-bold mb-4">
+                        {% if hero_sections %}
+                            {{ hero_sections.0.title }}
+                        {% else %}
+                            Empowering Communities with Digital Skills
+                        {% endif %}
+                    </h1>
+                    <p class="lead mb-4">
+                        {% if hero_sections %}
+                            {{ hero_sections.0.subtitle }}
+                        {% else %}
+                            Transform your future with cutting-edge technology training and professional tech services
+                        {% endif %}
+                    </p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{% url 'core:services' %}" class="btn btn-light btn-lg">
+                            <i class="fas fa-rocket me-2"></i>Explore Services
+                        </a>
+                        <a href="{% url 'core:contact' %}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-envelope me-2"></i>Get Quote
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div data-aos="fade-left" class="text-center">
+                    <img src="{% static 'images/hero-illustration.svg' %}" alt="Digital Skills Training" class="img-fluid" style="max-height: 500px;">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+{% if company_stats %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row" data-aos="fade-up">
+            {% for stat in company_stats %}
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="text-center">
+                    <div class="stat-icon mb-3">
+                        <i class="{{ stat.icon }} fa-3x text-primary"></i>
+                    </div>
+                    <h3 class="fw-bold text-primary mb-1">{{ stat.value }}</h3>
+                    <p class="text-muted mb-0">{{ stat.label }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Services Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="display-5 fw-bold mb-3">Our Services</h2>
+            <p class="lead text-muted">Comprehensive tech solutions and training programs designed for the digital age</p>
+        </div>
+        
+        <div class="row">
+            {% for service in featured_services %}
+            <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
+                <div class="card h-100 border-0 shadow-sm">
+                    {% if service.featured_image %}
+                    <img src="{{ service.featured_image.url }}" class="card-img-top" alt="{{ service.title }}" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <div class="service-icon mb-3">
+                            <i class="{{ service.category.icon }} text-white"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">{{ service.title }}</h5>
+                        <p class="card-text text-muted flex-grow-1">{{ service.description|truncatewords:20 }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <div>
+                                {% if service.discount_price %}
+                                    <span class="text-decoration-line-through text-muted small">{{ service.currency }} {{ service.price }}</span>
+                                    <span class="fw-bold text-primary">{{ service.currency }} {{ service.discount_price }}</span>
+                                {% else %}
+                                    <span class="fw-bold text-primary">{{ service.currency }} {{ service.price }}</span>
+                                {% endif %}
+                            </div>
+                            <a href="{{ service.get_absolute_url }}" class="btn btn-outline-primary btn-sm">
+                                Learn More <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-cogs fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">Services Coming Soon</h4>
+                    <p class="text-muted">We're preparing amazing tech services for you!</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-5" data-aos="fade-up">
+            <a href="{% url 'core:services' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-th-large me-2"></i>View All Services
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4" data-aos="fade-right">
+                <h2 class="display-5 fw-bold mb-4">Transforming Lives Through Technology</h2>
+                <p class="lead mb-4">At Debsploit Solutions, we believe technology should be accessible to everyone. Our mission is to bridge the digital divide by providing world-class training and services.</p>
+                <p class="mb-4">With years of experience in the tech industry, our expert instructors deliver practical, hands-on learning experiences that prepare students for real-world challenges.</p>
+                
+                <div class="row mb-4">
+                    <div class="col-4 text-center">
+                        <h3 class="fw-bold text-primary mb-1">500+</h3>
+                        <small class="text-muted">Students Trained</small>
+                    </div>
+                    <div class="col-4 text-center">
+                        <h3 class="fw-bold text-primary mb-1">95%</h3>
+                        <small class="text-muted">Job Placement</small>
+                    </div>
+                    <div class="col-4 text-center">
+                        <h3 class="fw-bold text-primary mb-1">50+</h3>
+                        <small class="text-muted">Corporate Clients</small>
+                    </div>
+                </div>
+                
+                <a href="{% url 'core:about' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-info-circle me-2"></i>Learn More About Us
+                </a>
+            </div>
+            <div class="col-lg-6" data-aos="fade-left">
+                <img src="{% static 'images/about-image.jpg' %}" alt="Team collaboration" class="img-fluid rounded-3 shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+{% if testimonials %}
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="display-5 fw-bold mb-3">What Our Students Say</h2>
+            <p class="lead text-muted">Success stories from our amazing community</p>
+        </div>
+        
+        <div class="row">
+            {% for testimonial in testimonials|slice:":3" %}
+            <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
+                <div class="card testimonial-card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="rating-stars mb-3">
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= testimonial.rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <p class="card-text mb-4">"{{ testimonial.content }}"</p>
+                        <div class="d-flex align-items-center">
+                            {% if testimonial.photo %}
+                                <img src="{{ testimonial.photo.url }}" alt="{{ testimonial.name }}" class="rounded-circle me-3" width="50" height="50">
+                            {% else %}
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                    <span class="text-white fw-bold">{{ testimonial.name.0 }}</span>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-0 fw-bold">{{ testimonial.name }}</h6>
+                                <small class="text-muted">{{ testimonial.title }}{% if testimonial.company %}, {{ testimonial.company }}{% endif %}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Blog Section -->
+{% if featured_blog_posts %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="display-5 fw-bold mb-3">Latest from Our Blog</h2>
+            <p class="lead text-muted">Stay updated with the latest tech insights and tutorials</p>
+        </div>
+        
+        <div class="row">
+            {% for post in featured_blog_posts %}
+            <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
+                <article class="card border-0 shadow-sm h-100">
+                    {% if post.featured_image %}
+                    <img src="{{ post.featured_image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-2">
+                            <span class="badge bg-primary">{{ post.category.name }}</span>
+                            <small class="text-muted ms-2">
+                                <i class="fas fa-clock me-1"></i>{{ post.reading_time }} min read
+                            </small>
+                        </div>
+                        <h5 class="card-title fw-bold">{{ post.title }}</h5>
+                        <p class="card-text text-muted flex-grow-1">{{ post.excerpt|truncatewords:15 }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <div class="d-flex align-items-center">
+                                {% if post.author.profile_picture %}
+                                    <img src="{{ post.author.profile_picture.url }}" alt="{{ post.author.get_full_name }}" class="rounded-circle me-2" width="30" height="30">
+                                {% else %}
+                                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
+                                        <span class="text-white small fw-bold">{{ post.author.first_name.0 }}</span>
+                                    </div>
+                                {% endif %}
+                                <small class="text-muted">{{ post.author.get_full_name }}</small>
+                            </div>
+                            <a href="{{ post.get_absolute_url }}" class="btn btn-outline-primary btn-sm">Read More</a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4" data-aos="fade-up">
+            <a href="{% url 'blog:post_list' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-blog me-2"></i>Visit Our Blog
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Team Section -->
+{% if team_members %}
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="display-5 fw-bold mb-3">Meet Our Expert Team</h2>
+            <p class="lead text-muted">Passionate professionals dedicated to your success</p>
+        </div>
+        
+        <div class="row">
+            {% for member in team_members|slice:":4" %}
+            <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
+                <div class="card border-0 shadow-sm text-center h-100">
+                    <div class="card-body">
+                        <img src="{{ member.photo.url }}" alt="{{ member.name }}" class="rounded-circle mb-3" width="100" height="100" style="object-fit: cover;">
+                        <h5 class="fw-bold mb-1">{{ member.name }}</h5>
+                        <p class="text-primary mb-2">{{ member.title }}</p>
+                        <p class="text-muted small mb-3">{{ member.bio|truncatewords:15 }}</p>
+                        <div class="social-links">
+                            {% if member.linkedin_url %}
+                                <a href="{{ member.linkedin_url }}" class="text-primary me-2" target="_blank">
+                                    <i class="fab fa-linkedin"></i>
+                                </a>
+                            {% endif %}
+                            {% if member.twitter_url %}
+                                <a href="{{ member.twitter_url }}" class="text-primary me-2" target="_blank">
+                                    <i class="fab fa-twitter"></i>
+                                </a>
+                            {% endif %}
+                            {% if member.github_url %}
+                                <a href="{{ member.github_url }}" class="text-primary me-2" target="_blank">
+                                    <i class="fab fa-github"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4" data-aos="fade-up">
+            <a href="{% url 'core:team' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-users me-2"></i>Meet Full Team
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center" data-aos="fade-up">
+        <h2 class="display-5 fw-bold mb-3">Ready to Start Your Tech Journey?</h2>
+        <p class="lead mb-4">Join thousands of students who have transformed their careers with our expert training</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard:home' %}" class="btn btn-light btn-lg">
+                    <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                </a>
+                <a href="{% url 'core:services' %}" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-graduation-cap me-2"></i>Browse Courses
+                </a>
+            {% else %}
+                <a href="{% url 'account_signup' %}" class="btn btn-light btn-lg">
+                    <i class="fas fa-user-plus me-2"></i>Get Started Free
+                </a>
+                <a href="{% url 'core:contact' %}" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-phone me-2"></i>Contact Us
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Counter animation for statistics
+    const counters = document.querySelectorAll('.stat-number');
+    
+    const animateCounter = (counter) => {
+        const target = parseInt(counter.textContent);
+        const increment = target / 100;
+        let current = 0;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                counter.textContent = target;
+                clearInterval(timer);
+            } else {
+                counter.textContent = Math.floor(current);
+            }
+        }, 20);
+    };
+    
+    // Intersection Observer for counter animation
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const counter = entry.target.querySelector('.stat-number');
+                if (counter) {
+                    animateCounter(counter);
+                    observer.unobserve(entry.target);
+                }
+            }
+        });
+    });
+    
+    // Observe stat sections
+    document.querySelectorAll('.stat-card, .text-center').forEach(section => {
+        if (section.querySelector('.stat-number')) {
+            observer.observe(section);
+        }
+    });
+    
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // Parallax effect for hero background
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const hero = document.querySelector('.hero-section');
+        if (hero) {
+            hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+        }
+    });
+    
+    // Dynamic greeting based on time
+    const now = new Date();
+    const hour = now.getHours();
+    let greeting = 'Welcome';
+    
+    if (hour < 12) {
+        greeting = 'Good Morning';
+    } else if (hour < 18) {
+        greeting = 'Good Afternoon';
+    } else {
+        greeting = 'Good Evening';
+    }
+    
+    // Update any greeting elements
+    const greetingElements = document.querySelectorAll('.dynamic-greeting');
+    greetingElements.forEach(el => {
+        el.textContent = greeting;
+    });
+});
+</script>
+{% endblock %}

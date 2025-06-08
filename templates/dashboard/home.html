@@ -1,0 +1,648 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block title %}Dashboard - {{ user.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #0066FF 0%, #00D4AA 100%);
+        color: white;
+        padding: 2rem 0;
+    }
+    
+    .stat-widget {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .stat-widget:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .activity-timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .activity-timeline::before {
+        content: '';
+        position: absolute;
+        left: 0.75rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e2e8f0;
+    }
+    
+    .activity-item {
+        position: relative;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .activity-item::before {
+        content: '';
+        position: absolute;
+        left: -1.75rem;
+        top: 1.25rem;
+        width: 10px;
+        height: 10px;
+        background: #0066FF;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px #e2e8f0;
+    }
+    
+    .progress-ring {
+        transform: rotate(-90deg);
+    }
+    
+    .quick-action-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+    
+    .quick-action-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--bs-primary);
+        box-shadow: 0 8px 25px rgba(0,102,255,0.15);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<section class="dashboard-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-6 fw-bold mb-2">
+                    Welcome back, {{ user.first_name|default:user.username }}! 👋
+                </h1>
+                <p class="lead mb-0 opacity-90">
+                    {% if user.user_type == 'developer' %}
+                        Ready to work on some exciting projects today?
+                    {% elif user.user_type == 'instructor' %}
+                        Time to inspire and educate the next generation of tech professionals.
+                    {% elif user.user_type == 'student' %}
+                        Continue your learning journey and build amazing skills.
+                    {% else %}
+                        Let's make today productive and successful.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="d-flex align-items-center justify-content-lg-end">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}" class="rounded-circle me-3" width="80" height="80" style="border: 4px solid rgba(255,255,255,0.3);">
+                    {% else %}
+                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 80px; height: 80px; border: 4px solid rgba(255,255,255,0.3);">
+                            <span class="text-primary fw-bold fs-3">{{ user.first_name.0|upper }}{{ user.last_name.0|upper }}</span>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <div class="fw-bold">{{ user.get_user_type_display }}</div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-coins text-warning me-1"></i>
+                            <span class="fw-bold">{{ user.points }} points</span>
+                        </div>
+                        {% if user.is_verified %}
+                            <div class="text-success small">
+                                <i class="fas fa-check-circle me-1"></i>Verified
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-4">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-widget border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-widget-icon bg-primary text-white rounded-3 me-3">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0 text-primary">{{ stats.courses_enrolled }}</h4>
+                            <small class="text-muted">Courses Enrolled</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-widget border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-widget-icon bg-success text-white rounded-3 me-3">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0 text-success">{{ stats.courses_completed }}</h4>
+                            <small class="text-muted">Completed</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if user.user_type == 'developer' %}
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-widget border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-widget-icon bg-info text-white rounded-3 me-3">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0 text-info">{{ stats.tasks_assigned }}</h4>
+                            <small class="text-muted">Tasks Assigned</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-widget border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-widget-icon bg-warning text-white rounded-3 me-3">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0 text-warning">{{ stats.portfolio_projects }}</h4>
+                            <small class="text-muted">Portfolio Projects</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-widget border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-widget-icon bg-warning text-white rounded-3 me-3">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0 text-warning">{{ stats.achievements_earned }}</h4>
+                            <small class="text-muted">Achievements</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stat-widget border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-widget-icon bg-info text-white rounded-3 me-3">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0 text-info">{{ user.points }}</h4>
+                            <small class="text-muted">Total Points</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="row">
+        <!-- Quick Actions -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-bolt text-primary me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for action in quick_actions %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <a href="{{ action.url }}" class="text-decoration-none">
+                                <div class="card quick-action-card h-100 text-center p-3">
+                                    <div class="card-body">
+                                        <i class="{{ action.icon }} fa-2x text-{{ action.color }} mb-3"></i>
+                                        <h6 class="fw-bold mb-0">{{ action.title }}</h6>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-clock text-primary me-2"></i>Recent Activity
+                    </h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_activities %}
+                        <div class="activity-timeline">
+                            {% for activity in recent_activities|slice:":5" %}
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="fw-bold mb-1">{{ activity.get_activity_type_display }}</h6>
+                                        <p class="text-muted mb-0">{{ activity.description }}</p>
+                                    </div>
+                                    <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No recent activity to show</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Progress Overview -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-chart-line text-primary me-2"></i>Your Progress
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if progress %}
+                        <div class="text-center mb-4">
+                            <div class="progress-circle-container d-inline-block position-relative">
+                                <svg width="120" height="120" class="progress-ring">
+                                    <circle cx="60" cy="60" r="54" stroke="#e2e8f0" stroke-width="8" fill="none"/>
+                                    <circle cx="60" cy="60" r="54" stroke="#0066FF" stroke-width="8" fill="none"
+                                            stroke-dasharray="339.29" 
+                                            stroke-dashoffset="{{ progress.get_overall_progress|floatformat:0|add:0|mul:3.39|sub:339.29 }}"
+                                            style="transition: stroke-dashoffset 0.6s ease;"/>
+                                </svg>
+                                <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                    <div class="fs-4 fw-bold text-primary">{{ progress.get_overall_progress|floatformat:0 }}%</div>
+                                    <div class="small text-muted">Overall</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-progress">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small class="fw-bold">Programming</small>
+                                    <small class="text-muted">{{ progress.programming_level }}%</small>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ progress.programming_level }}%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small class="fw-bold">Design</small>
+                                    <small class="text-muted">{{ progress.design_level }}%</small>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress.design_level }}%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small class="fw-bold">Cybersecurity</small>
+                                    <small class="text-muted">{{ progress.cybersecurity_level }}%</small>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ progress.cybersecurity_level }}%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small class="fw-bold">AI/ML</small>
+                                    <small class="text-muted">{{ progress.ai_level }}%</small>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ progress.ai_level }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">Start learning to track your progress</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Notifications -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-bell text-primary me-2"></i>Notifications
+                        {% if unread_notifications %}
+                            <span class="badge bg-danger">{{ unread_notifications.count }}</span>
+                        {% endif %}
+                    </h5>
+                    <a href="{% url 'dashboard:notifications' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if unread_notifications %}
+                        {% for notification in unread_notifications %}
+                        <div class="notification-item border-start border-primary border-3 ps-3 mb-3">
+                            <h6 class="fw-bold mb-1">{{ notification.title }}</h6>
+                            <p class="text-muted small mb-1">{{ notification.message|truncatewords:15 }}</p>
+                            <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <p class="text-muted mb-0">All caught up!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Recent Achievements -->
+            {% if recent_achievements %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-trophy text-warning me-2"></i>Recent Achievements
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for achievement in recent_achievements %}
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="achievement-icon bg-warning text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="{{ achievement.badge_icon }}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="fw-bold mb-0">{{ achievement.title }}</h6>
+                            <small class="text-muted">{{ achievement.earned_date|date:"M d, Y" }}</small>
+                            {% if achievement.points_awarded > 0 %}
+                                <div class="text-success small">
+                                    <i class="fas fa-coins me-1"></i>+{{ achievement.points_awarded }} points
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Upcoming Deadlines (for developers) -->
+    {% if user.user_type == 'developer' and upcoming_deadlines %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-calendar-exclamation text-danger me-2"></i>Upcoming Deadlines
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for task in upcoming_deadlines %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card border-start border-danger border-3">
+                                <div class="card-body">
+                                    <h6 class="fw-bold mb-2">{{ task.title }}</h6>
+                                    <p class="text-muted small mb-2">{{ task.description|truncatewords:10 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-danger">{{ task.due_date|timeuntil }}</span>
+                                        <a href="{% url 'dashboard:task_detail' pk=task.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Learning Paths -->
+    {% if user_learning_paths %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-route text-success me-2"></i>Your Learning Paths
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for user_path in user_learning_paths %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="{{ user_path.learning_path.icon }} fa-2x text-{{ user_path.learning_path.color|cut:'#' }} me-3"></i>
+                                        <div>
+                                            <h6 class="fw-bold mb-0">{{ user_path.learning_path.name }}</h6>
+                                            <small class="text-muted">{{ user_path.learning_path.difficulty_level|title }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="progress mb-2" style="height: 8px;">
+                                        <div class="progress-bar" role="progressbar" style="width: {{ user_path.progress_percentage }}%"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">{{ user_path.progress_percentage }}% Complete</small>
+                                        {% if user_path.is_completed %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">In Progress</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate progress bars
+    const progressBars = document.querySelectorAll('.progress-bar');
+    
+    const animateProgressBars = () => {
+        progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 100);
+        });
+    };
+    
+    // Animate circular progress
+    const circularProgress = document.querySelector('.progress-ring circle:last-child');
+    if (circularProgress) {
+        const strokeDashoffset = circularProgress.style.strokeDashoffset;
+        circularProgress.style.strokeDashoffset = '339.29';
+        setTimeout(() => {
+            circularProgress.style.strokeDashoffset = strokeDashoffset;
+        }, 500);
+    }
+    
+    // Initialize animations
+    setTimeout(animateProgressBars, 300);
+    
+    // Auto-refresh notifications every 30 seconds
+    setInterval(() => {
+        fetch('{% url "dashboard:api_notifications" %}')
+            .then(response => response.json())
+            .then(data => {
+                const unreadCount = data.notifications.filter(n => !n.is_read).length;
+                const badge = document.querySelector('.notification-badge');
+                if (badge) {
+                    if (unreadCount > 0) {
+                        badge.textContent = unreadCount;
+                        badge.style.display = 'inline';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            })
+            .catch(error => console.log('Error fetching notifications:', error));
+    }, 30000);
+    
+    // Add click handlers for stat widgets
+    document.querySelectorAll('.stat-widget').forEach(widget => {
+        widget.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            if (icon.classList.contains('fa-graduation-cap')) {
+                window.location.href = '{% url "dashboard:courses" %}';
+            } else if (icon.classList.contains('fa-tasks')) {
+                window.location.href = '{% url "dashboard:tasks" %}';
+            } else if (icon.classList.contains('fa-briefcase')) {
+                window.location.href = '{% url "dashboard:portfolio" %}';
+            } else if (icon.classList.contains('fa-trophy')) {
+                window.location.href = '{% url "dashboard:profile" %}#achievements';
+            }
+        });
+    });
+    
+    // Dynamic greeting update
+    const updateGreeting = () => {
+        const now = new Date();
+        const hour = now.getHours();
+        let greeting = 'Welcome back';
+        
+        if (hour < 12) {
+            greeting = 'Good morning';
+        } else if (hour < 18) {
+            greeting = 'Good afternoon';
+        } else {
+            greeting = 'Good evening';
+        }
+        
+        const greetingElement = document.querySelector('.dashboard-header h1');
+        if (greetingElement) {
+            const name = '{{ user.first_name|default:user.username }}';
+            greetingElement.innerHTML = `${greeting}, ${name}! 👋`;
+        }
+    };
+    
+    updateGreeting();
+    
+    // Add tooltips to progress bars
+    const progressElements = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    progressElements.forEach(element => {
+        new bootstrap.Tooltip(element);
+    });
+    
+    // Achievement celebration animation
+    const celebrations = document.querySelectorAll('.achievement-icon');
+    celebrations.forEach((celebration, index) => {
+        setTimeout(() => {
+            celebration.style.animation = 'bounce 0.6s ease-in-out';
+        }, index * 200);
+    });
+});
+
+// Function to show success toast
+function showSuccessToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast align-items-center text-bg-success border-0 position-fixed top-0 end-0 m-3';
+    toast.style.zIndex = '9999';
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-check-circle me-2"></i>${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
+
+// Add CSS animation for bounce effect
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes bounce {
+        0%, 20%, 60%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        80% {
+            transform: translateY(-5px);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}
