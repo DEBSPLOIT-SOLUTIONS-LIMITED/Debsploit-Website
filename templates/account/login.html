@@ -1,0 +1,52 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Sign In" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-gradient-primary text-white text-center py-4">
+                    <h2 class="mb-0">{% trans "Welcome Back" %}</h2>
+                    <p class="mb-0">{% trans "Sign in to access your account" %}</p>
+                </div>
+                <div class="card-body p-5">
+                    <form class="login" method="POST" action="{% url 'account_login' %}">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        {% if redirect_field_value %}
+                        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                        {% endif %}
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <button class="btn btn-primary px-5" type="submit">
+                                <i class="fas fa-sign-in-alt me-2"></i> {% trans "Sign In" %}
+                            </button>
+                            <a class="text-decoration-none" href="{% url 'account_reset_password' %}">
+                                {% trans "Forgot Password?" %}
+                            </a>
+                        </div>
+                        <div class="text-center">
+                            <p class="mb-3">{% trans "or sign in with" %}</p>
+                            <div class="d-flex justify-content-center gap-3">
+                                {% include "socialaccount/snippets/provider_list.html" with process="login" %}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-light text-center py-3">
+                    <p class="mb-0">
+                        {% trans "Don't have an account?" %}
+                        <a href="{{ signup_url }}" class="text-decoration-none fw-bold">
+                            {% trans "Sign Up" %}
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

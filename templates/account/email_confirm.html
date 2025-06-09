@@ -1,0 +1,47 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+
+{% block title %}{% trans "Confirm Email Address" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-gradient-primary text-white text-center py-4">
+                    <h2 class="mb-0">{% trans "Confirm Email Address" %}</h2>
+                </div>
+                <div class="card-body p-5 text-center">
+                    {% if confirmation %}
+                        <div class="mb-4">
+                            <i class="fas fa-envelope fa-4x text-primary mb-3"></i>
+                            <p class="mb-0">
+                                {% trans "Please confirm that" %} 
+                                <a href="mailto:{{ confirmation.email_address.email }}" class="text-decoration-none">
+                                    {{ confirmation.email_address.email }}
+                                </a> 
+                                {% trans "is your email address." %}
+                            </p>
+                        </div>
+                        <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+                            {% csrf_token %}
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-check-circle me-2"></i> {% trans "Confirm" %}
+                            </button>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            {% trans "This email confirmation link expired or is invalid. Please" %}
+                            <a href="{% url 'account_email' %}" class="text-decoration-none">
+                                {% trans "issue a new email confirmation request" %}.
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

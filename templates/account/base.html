@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="auth-page">
+    {% block auth_content %}{% endblock %}
+</main>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-page {
+        min-height: calc(100vh - 180px);
+        display: flex;
+        align-items: center;
+    }
+    
+    .card {
+        border-radius: var(--border-radius-xl);
+        overflow: hidden;
+    }
+    
+    .card-header {
+        border-radius: 0 !important;
+    }
+    
+    .bg-gradient-primary {
+        background: var(--gradient-primary);
+    }
+    
+    .bg-gradient-success {
+        background: var(--gradient-accent);
+    }
+    
+    .socialaccount_provider {
+        transition: all 0.3s ease;
+    }
+    
+    .socialaccount_provider:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .fa-google { color: #DB4437; }
+    .fa-facebook { color: #1877F2; }
+    .fa-github { color: #333; }
+    .fa-twitter { color: #1DA1F2; }
+    .fa-linkedin { color: #0077B5; }
+</style>
+{% endblock %}

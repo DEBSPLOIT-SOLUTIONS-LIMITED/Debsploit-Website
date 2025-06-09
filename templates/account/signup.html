@@ -1,0 +1,49 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Sign Up" %} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-gradient-primary text-white text-center py-4">
+                    <h2 class="mb-0">{% trans "Join Us Today" %}</h2>
+                    <p class="mb-0">{% trans "Create your account to get started" %}</p>
+                </div>
+                <div class="card-body p-5">
+                    <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        {% if redirect_field_value %}
+                        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                        {% endif %}
+                        <div class="d-grid gap-2 mb-4">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-user-plus me-2"></i> {% trans "Sign Up" %}
+                            </button>
+                        </div>
+                        <div class="text-center">
+                            <p class="mb-3">{% trans "or sign up with" %}</p>
+                            <div class="d-flex justify-content-center gap-3">
+                                {% include "socialaccount/snippets/provider_list.html" with process="login" %}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-light text-center py-3">
+                    <p class="mb-0">
+                        {% trans "Already have an account?" %}
+                        <a href="{{ login_url }}" class="text-decoration-none fw-bold">
+                            {% trans "Sign In" %}
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
