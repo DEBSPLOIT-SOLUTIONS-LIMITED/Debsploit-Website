@@ -1,3 +1,5 @@
+import re
+import uuid
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
@@ -26,13 +28,18 @@ class CustomUserCreationForm(UserCreationForm):
     
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'user_type', 
+        fields = ('email', 'first_name', 'last_name', 'user_type', 
                  'phone', 'password1', 'password2', 'terms_accepted')
+        # Removed username from fields since we'll auto-generate it
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = 'post'
+        
+        # Remove username field from the form display
+        if 'username' in self.fields:
+            del self.fields['username']
         
         self.helper.layout = Layout(
             Fieldset(
@@ -43,15 +50,11 @@ class CustomUserCreationForm(UserCreationForm):
                     css_class='form-row'
                 ),
                 Row(
-                    Column('username', css_class='form-group col-md-6 mb-0'),
-                    Column('email', css_class='form-group col-md-6 mb-0'),
+                    Column('email', css_class='form-group col-md-8 mb-0'),
+                    Column('user_type', css_class='form-group col-md-4 mb-0'),
                     css_class='form-row'
                 ),
-                Row(
-                    Column('user_type', css_class='form-group col-md-6 mb-0'),
-                    Column('phone', css_class='form-group col-md-6 mb-0'),
-                    css_class='form-row'
-                ),
+                'phone',
             ),
             Fieldset(
                 'Security',
@@ -69,7 +72,6 @@ class CustomUserCreationForm(UserCreationForm):
         )
         
         # Add help text
-        self.fields['username'].help_text = 'Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'
         self.fields['user_type'].help_text = 'Choose your primary role on the platform.'
         self.fields['phone'].help_text = 'Optional. Include country code (e.g., +254 700 000 000)'
     
@@ -79,10 +81,28 @@ class CustomUserCreationForm(UserCreationForm):
             raise ValidationError("A user with this email already exists.")
         return email
     
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        if User.objects.filter(username=username).exists():
-            raise ValidationError("A user with this username already exists.")
+    def generate_username(self, email, first_name, last_name):
+        """Generate a unique username"""
+        if email:
+            # Extract base from email (part before @)
+            base_username = re.sub(r'[^a-zA-Z0-9]', '', email.split('@')[0])
+        elif first_name and last_name:
+            # Use first and last name
+            base_username = re.sub(r'[^a-zA-Z0-9]', '', f"{first_name}{last_name}")
+        else:
+            # Fallback to user + uuid
+            base_username = f"user{str(uuid.uuid4())[:8]}"
+        
+        # Ensure it's not too long
+        base_username = base_username[:20].lower()
+        
+        # Make it unique
+        username = base_username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+        
         return username
     
     def save(self, commit=True):
@@ -91,12 +111,21 @@ class CustomUserCreationForm(UserCreationForm):
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
         user.user_type = self.cleaned_data['user_type']
+        
+        # Auto-generate username
+        user.username = self.generate_username(
+            self.cleaned_data['email'],
+            self.cleaned_data['first_name'],
+            self.cleaned_data['last_name']
+        )
+        
         if self.cleaned_data['phone']:
             user.phone = self.cleaned_data['phone']
         
         if commit:
             user.save()
         return user
+
 
 class UserProfileForm(forms.ModelForm):
     """Complete user profile form"""

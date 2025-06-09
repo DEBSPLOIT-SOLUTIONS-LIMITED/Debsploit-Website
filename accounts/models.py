@@ -4,6 +4,8 @@ from django.urls import reverse
 from phonenumber_field.modelfields import PhoneNumberField
 from django_countries.fields import CountryField
 from PIL import Image
+import uuid
+import re
 
 class User(AbstractUser):
     USER_TYPES = (
@@ -26,7 +28,15 @@ class User(AbstractUser):
     bio = models.TextField(max_length=500, blank=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', default='profile_pics/default.jpg')
     date_of_birth = models.DateField(null=True, blank=True)
-    country = CountryField(blank_label='(select country)', blank=True, null=True)
+    
+    # Fix the CountryField configuration
+    country = CountryField(
+        blank_label='(Select Country)',  # This fixes the BlankChoiceIterator issue
+        blank=True, 
+        null=True,
+        default=''  # Add default empty value
+    )
+    
     city = models.CharField(max_length=100, blank=True)
     address = models.TextField(blank=True)
     
@@ -48,7 +58,7 @@ class User(AbstractUser):
     updated_at = models.DateTimeField(auto_now=True)
     
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    REQUIRED_FIELDS = ['first_name', 'last_name']
     
     class Meta:
         db_table = 'auth_user'
@@ -59,16 +69,48 @@ class User(AbstractUser):
     def get_absolute_url(self):
         return reverse('dashboard:profile', kwargs={'pk': self.pk})
     
+    def generate_username(self):
+        """Generate a unique username based on email or names"""
+        if self.email:
+            # Extract base from email (part before @)
+            base_username = re.sub(r'[^a-zA-Z0-9]', '', self.email.split('@')[0])
+        elif self.first_name and self.last_name:
+            # Use first and last name
+            base_username = re.sub(r'[^a-zA-Z0-9]', '', f"{self.first_name}{self.last_name}")
+        else:
+            # Fallback to user + uuid
+            base_username = f"user{str(uuid.uuid4())[:8]}"
+        
+        # Ensure it's not too long
+        base_username = base_username[:20].lower()
+        
+        # Make it unique
+        username = base_username
+        counter = 1
+        while User.objects.filter(username=username).exclude(pk=self.pk).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+        
+        return username
+    
     def save(self, *args, **kwargs):
+        # Auto-generate username if not provided or empty
+        if not self.username:
+            self.username = self.generate_username()
+        
+        # Call the original save method
         super().save(*args, **kwargs)
         
         # Resize profile picture
         if self.profile_picture:
-            img = Image.open(self.profile_picture.path)
-            if img.height > 300 or img.width > 300:
-                output_size = (300, 300)
-                img.thumbnail(output_size)
-                img.save(self.profile_picture.path)
+            try:
+                img = Image.open(self.profile_picture.path)
+                if img.height > 300 or img.width > 300:
+                    output_size = (300, 300)
+                    img.thumbnail(output_size)
+                    img.save(self.profile_picture.path)
+            except Exception:
+                pass  # Handle case where image file doesn't exist yet
     
     @property
     def full_name(self):
