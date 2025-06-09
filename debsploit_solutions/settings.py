@@ -144,7 +144,7 @@ AUTH_USER_MODEL = 'accounts.User'
 
 # Django Sites Framework
 SITE_ID = 1
-SITE_URL = 'https://debsploit-website.onrender.com' if not DEBUG else 'http://localhost:8000'
+SITE_URL = config('SITE_URL', default='http://localhost:8000')
 
 # Django Allauth Configuration
 ACCOUNT_ADAPTER = 'allauth.account.adapter.DefaultAccountAdapter'
