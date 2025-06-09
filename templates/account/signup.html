@@ -1,33 +1,360 @@
 {% extends "account/base.html" %}
-
 {% load i18n %}
 {% load crispy_forms_tags %}
 
 {% block title %}{% trans "Sign Up" %} | {{ block.super }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .auth-page {
+        min-height: calc(100vh - 180px);
+        display: flex;
+        align-items: center;
+    }
+    
+    .card {
+        border-radius: var(--border-radius-xl, 15px);
+        overflow: hidden;
+    }
+    
+    .card-header {
+        border-radius: 0 !important;
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    }
+    
+    .bg-gradient-success {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    }
+    
+    .socialaccount_provider {
+        transition: all 0.3s ease;
+    }
+    
+    .socialaccount_provider:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .fa-google { color: #DB4437; }
+    .fa-facebook { color: #1877F2; }
+    .fa-github { color: #333; }
+    .fa-twitter { color: #1DA1F2; }
+    .fa-linkedin { color: #0077B5; }
+
+    /* User Type Selection Styles */
+    .user-type-selection {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .user-type-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .user-type-card {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .user-type-card:hover {
+        border-color: #007bff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,123,255,0.15);
+    }
+
+    .user-type-card.selected {
+        border-color: #007bff;
+        background: linear-gradient(135deg, #e7f1ff 0%, #f0f8ff 100%);
+        box-shadow: 0 4px 15px rgba(0,123,255,0.2);
+    }
+
+    .user-type-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+        color: #6c757d;
+        transition: color 0.3s ease;
+    }
+
+    .user-type-card.selected .icon {
+        color: #007bff;
+    }
+
+    .user-type-card .title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+
+    .user-type-card.selected .title {
+        color: #007bff;
+    }
+
+    .user-type-card .description {
+        font-size: 0.875rem;
+        color: #6c757d;
+        line-height: 1.4;
+    }
+
+    .terms-section {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-left: 4px solid #007bff;
+    }
+
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+    }
+
+    .btn-signup {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .btn-signup:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(0,123,255,0.3);
+    }
+
+    .password-strength {
+        margin-top: 0.5rem;
+    }
+
+    .password-requirement {
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .password-requirement.valid {
+        color: #28a745;
+    }
+
+    .password-requirement.invalid {
+        color: #dc3545;
+    }
+
+    @media (max-width: 768px) {
+        .user-type-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .col-md-6, .col-md-8, .col-md-4 {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-6 col-md-8">
+        <div class="col-lg-8 col-md-10">
             <div class="card border-0 shadow-lg">
                 <div class="card-header bg-gradient-primary text-white text-center py-4">
-                    <h2 class="mb-0">{% trans "Join Us Today" %}</h2>
-                    <p class="mb-0">{% trans "Create your account to get started" %}</p>
+                    <h2 class="mb-0">
+                        <i class="fas fa-rocket me-2"></i>{% trans "Join Us Today" %}
+                    </h2>
+                    <p class="mb-0 opacity-75">{% trans "Create your account to get started on your journey" %}</p>
                 </div>
                 <div class="card-body p-5">
                     <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
                         {% csrf_token %}
-                        {{ form|crispy }}
+                        
+                        <!-- Display form errors at the top -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Personal Information -->
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold" for="{{ form.first_name.id_for_label }}">
+                                    First Name *
+                                </label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small">{{ form.first_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold" for="{{ form.last_name.id_for_label }}">
+                                    Last Name *
+                                </label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small">{{ form.last_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label fw-semibold" for="{{ form.email.id_for_label }}">
+                                    Email Address *
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold" for="{{ form.phone.id_for_label }}">
+                                    Phone (Optional)
+                                </label>
+                                {{ form.phone }}
+                                {% if form.phone.errors %}
+                                    <div class="text-danger small">{{ form.phone.errors.0 }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted">Include country code</small>
+                            </div>
+                        </div>
+                        
+                        <!-- User Type Selection -->
+                        <div class="user-type-selection">
+                            <h5 class="text-center mb-0">
+                                <i class="fas fa-users me-2"></i>Choose Your Role
+                            </h5>
+                            <p class="text-center text-muted small mb-3">Select the option that best describes you</p>
+                            
+                            <!-- Hidden select field -->
+                            <div style="display: none;">
+                                {{ form.user_type }}
+                            </div>
+                            
+                            {% if form.user_type.errors %}
+                                <div class="alert alert-danger">{{ form.user_type.errors.0 }}</div>
+                            {% endif %}
+                            
+                            <div class="user-type-grid">
+                                <div class="user-type-card" data-value="student">
+                                    <div class="icon">
+                                        <i class="fas fa-graduation-cap"></i>
+                                    </div>
+                                    <div class="title">Student</div>
+                                    <div class="description">Learn and grow your skills</div>
+                                </div>
+                                
+                                <div class="user-type-card" data-value="developer">
+                                    <div class="icon">
+                                        <i class="fas fa-code"></i>
+                                    </div>
+                                    <div class="title">Developer</div>
+                                    <div class="description">Build and create solutions</div>
+                                </div>
+                                
+                                <div class="user-type-card" data-value="instructor">
+                                    <div class="icon">
+                                        <i class="fas fa-chalkboard-teacher"></i>
+                                    </div>
+                                    <div class="title">Instructor</div>
+                                    <div class="description">Teach and mentor others</div>
+                                </div>
+                              
+                            </div>
+                        </div>
+                        
+                        <!-- Password Fields -->
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold" for="{{ form.password1.id_for_label }}">
+                                    Password *
+                                </label>
+                                {{ form.password1 }}
+                                {% if form.password1.errors %}
+                                    <div class="text-danger small">{{ form.password1.errors.0 }}</div>
+                                {% endif %}
+                                <div class="password-strength">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Password requirements:
+                                    </small>
+                                    <div class="password-requirements small">
+                                        <div class="password-requirement" data-requirement="length">
+                                            <i class="fas fa-circle me-1"></i> At least 8 characters
+                                        </div>
+                                        <div class="password-requirement" data-requirement="uppercase">
+                                            <i class="fas fa-circle me-1"></i> One uppercase letter
+                                        </div>
+                                        <div class="password-requirement" data-requirement="lowercase">
+                                            <i class="fas fa-circle me-1"></i> One lowercase letter
+                                        </div>
+                                        <div class="password-requirement" data-requirement="number">
+                                            <i class="fas fa-circle me-1"></i> One number
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold" for="{{ form.password2.id_for_label }}">
+                                    Confirm Password *
+                                </label>
+                                {{ form.password2 }}
+                                {% if form.password2.errors %}
+                                    <div class="text-danger small">{{ form.password2.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Terms and Conditions -->
+                        <div class="terms-section">
+                            <div class="form-check">
+                                {{ form.terms_accepted }}
+                                <label class="form-check-label" for="{{ form.terms_accepted.id_for_label }}">
+                                    <strong>{{ form.terms_accepted.label }}</strong>
+                                </label>
+                            </div>
+                            {% if form.terms_accepted.errors %}
+                                <div class="text-danger small">{{ form.terms_accepted.errors.0 }}</div>
+                            {% endif %}
+                            <small class="text-muted">
+                                By creating an account, you agree to our 
+                                <a href="#" class="text-decoration-none">Terms of Service</a> and 
+                                <a href="#" class="text-decoration-none">Privacy Policy</a>
+                            </small>
+                        </div>
+                        
                         {% if redirect_field_value %}
                         <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
                         {% endif %}
+                        
                         <div class="d-grid gap-2 mb-4">
-                            <button class="btn btn-primary" type="submit">
-                                <i class="fas fa-user-plus me-2"></i> {% trans "Sign Up" %}
+                            <button class="btn btn-primary btn-signup" type="submit">
+                                <i class="fas fa-user-plus me-2"></i>{% trans "Create Account" %}
                             </button>
                         </div>
+                        
                         <div class="text-center">
-                            <p class="mb-3">{% trans "or sign up with" %}</p>
+                            <p class="mb-3 text-muted">{% trans "or sign up with" %}</p>
                             <div class="d-flex justify-content-center gap-3">
                                 {% include "socialaccount/snippets/provider_list.html" with process="login" %}
                             </div>
@@ -37,7 +364,7 @@
                 <div class="card-footer bg-light text-center py-3">
                     <p class="mb-0">
                         {% trans "Already have an account?" %}
-                        <a href="{{ login_url }}" class="text-decoration-none fw-bold">
+                        <a href="{{ login_url }}" class="text-decoration-none fw-bold text-primary">
                             {% trans "Sign In" %}
                         </a>
                     </p>
@@ -46,4 +373,129 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userTypeCards = document.querySelectorAll('.user-type-card');
+    const userTypeSelect = document.querySelector('select[name="user_type"]');
+    
+    // Handle user type card selection
+    userTypeCards.forEach(card => {
+        card.addEventListener('click', function() {
+            // Remove selected class from all cards
+            userTypeCards.forEach(c => c.classList.remove('selected'));
+            
+            // Add selected class to clicked card
+            this.classList.add('selected');
+            
+            // Update the select value
+            const value = this.dataset.value;
+            if (userTypeSelect) {
+                userTypeSelect.value = value;
+                
+                // Trigger change event for validation
+                userTypeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+    });
+    
+    // Set initial selection if there's already a value
+    if (userTypeSelect && userTypeSelect.value) {
+        const selectedCard = document.querySelector(`[data-value="${userTypeSelect.value}"]`);
+        if (selectedCard) {
+            selectedCard.classList.add('selected');
+        }
+    } else {
+        // Default to student if no selection
+        const defaultCard = document.querySelector('[data-value="student"]');
+        if (defaultCard && userTypeSelect) {
+            defaultCard.classList.add('selected');
+            userTypeSelect.value = 'student';
+        }
+    }
+    
+    // Password strength validation
+    const passwordInput = document.querySelector('input[name="password1"]');
+    const passwordRequirements = document.querySelectorAll('.password-requirement');
+    
+    if (passwordInput && passwordRequirements.length > 0) {
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            
+            // Check each requirement
+            const checks = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /[0-9]/.test(password)
+            };
+            
+            passwordRequirements.forEach(req => {
+                const requirement = req.dataset.requirement;
+                const icon = req.querySelector('i');
+                
+                if (checks[requirement]) {
+                    req.classList.add('valid');
+                    req.classList.remove('invalid');
+                    icon.className = 'fas fa-check-circle me-1';
+                } else {
+                    req.classList.add('invalid');
+                    req.classList.remove('valid');
+                    icon.className = 'fas fa-circle me-1';
+                }
+            });
+        });
+    }
+    
+    // Password confirmation validation
+    const password2Input = document.querySelector('input[name="password2"]');
+    if (passwordInput && password2Input) {
+        password2Input.addEventListener('input', function() {
+            if (this.value && passwordInput.value) {
+                if (this.value === passwordInput.value) {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                } else {
+                    this.classList.remove('is-valid');
+                    this.classList.add('is-invalid');
+                }
+            }
+        });
+    }
+    
+    // Form validation before submit
+    const form = document.getElementById('signup_form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            
+            // Check if user type is selected
+            if (!userTypeSelect.value) {
+                isValid = false;
+                // Highlight user type selection area
+                const userTypeSelection = document.querySelector('.user-type-selection');
+                userTypeSelection.style.borderColor = '#dc3545';
+                
+                // Show error message
+                let errorDiv = document.querySelector('.user-type-error');
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.className = 'alert alert-danger user-type-error mt-2';
+                    errorDiv.textContent = 'Please select your role.';
+                    userTypeSelection.appendChild(errorDiv);
+                }
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                // Scroll to first error
+                const firstError = document.querySelector('.alert-danger');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

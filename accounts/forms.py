@@ -7,15 +7,135 @@ from django.core.exceptions import ValidationError
 from django_countries.fields import CountryField
 from phonenumber_field.formfields import PhoneNumberField
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Fieldset, Row, Column, Submit, HTML
+from crispy_forms.layout import Layout, Fieldset, Row, Column, Submit, HTML, Div
 from crispy_forms.bootstrap import FormActions, Tab, TabHolder
+from allauth.account.forms import SignupForm
 
 from .models import UserSkill, UserNotification
 
 User = get_user_model()
 
+# Allauth Custom Signup Form
+class CustomSignupForm(SignupForm):
+    """Custom allauth signup form that includes user type selection"""
+    
+    first_name = forms.CharField(
+        max_length=30, 
+        required=True,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'First Name',
+            'class': 'form-control'
+        })
+    )
+    last_name = forms.CharField(
+        max_length=30, 
+        required=True,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Last Name',
+            'class': 'form-control'
+        })
+    )
+    user_type = forms.ChoiceField(
+        choices=User.USER_TYPES,
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        }),
+        help_text="Choose your primary role on the platform"
+    )
+    phone = PhoneNumberField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': '+254 700 000 000',
+            'class': 'form-control'
+        }),
+        help_text="Optional. Include country code"
+    )
+    terms_accepted = forms.BooleanField(
+        required=True,
+        label="I accept the Terms of Service and Privacy Policy",
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input'
+        })
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Customize field attributes
+        self.fields['email'].widget.attrs.update({
+            'placeholder': 'Email Address',
+            'class': 'form-control'
+        })
+        self.fields['password1'].widget.attrs.update({
+            'placeholder': 'Password',
+            'class': 'form-control'
+        })
+        self.fields['password2'].widget.attrs.update({
+            'placeholder': 'Confirm Password',
+            'class': 'form-control'
+        })
+        
+        # Add help text
+        self.fields['user_type'].help_text = 'Choose your primary role on the platform'
+        self.fields['phone'].help_text = 'Optional. Include country code (e.g., +254 700 000 000)'
+        self.fields['password1'].help_text = 'Your password must contain at least 8 characters'
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("A user with this email already exists.")
+        return email
+    
+    def generate_username(self, email, first_name, last_name):
+        """Generate a unique username"""
+        if email:
+            # Extract base from email (part before @)
+            base_username = re.sub(r'[^a-zA-Z0-9]', '', email.split('@')[0])
+        elif first_name and last_name:
+            # Use first and last name
+            base_username = re.sub(r'[^a-zA-Z0-9]', '', f"{first_name}{last_name}")
+        else:
+            # Fallback to user + uuid
+            base_username = f"user{str(uuid.uuid4())[:8]}"
+        
+        # Ensure it's not too long
+        base_username = base_username[:20].lower()
+        
+        # Make it unique
+        username = base_username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+        
+        return username
+    
+    def save(self, request):
+        """Save the user with the additional fields"""
+        user = super().save(request)
+        
+        # Set additional fields
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        user.user_type = self.cleaned_data['user_type']
+        
+        # Auto-generate username
+        user.username = self.generate_username(
+            self.cleaned_data['email'],
+            self.cleaned_data['first_name'],
+            self.cleaned_data['last_name']
+        )
+        
+        if self.cleaned_data.get('phone'):
+            user.phone = self.cleaned_data['phone']
+        
+        user.save()
+        return user
+
+# Keep your existing CustomUserCreationForm for other uses
 class CustomUserCreationForm(UserCreationForm):
-    """Enhanced user registration form"""
+    """Enhanced user registration form (for non-allauth use)"""
     email = forms.EmailField(required=True)
     first_name = forms.CharField(max_length=30, required=True)
     last_name = forms.CharField(max_length=30, required=True)
@@ -125,7 +245,6 @@ class CustomUserCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
-
 
 class UserProfileForm(forms.ModelForm):
     """Complete user profile form"""
