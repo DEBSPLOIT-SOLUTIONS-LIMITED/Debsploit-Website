@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from decouple import config
-
+import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -272,8 +272,12 @@ CKEDITOR_CONFIGS = {
     },
 }
 
+# Email Settings
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
@@ -309,6 +313,7 @@ CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_USE_SESSIONS = False
 CSRF_TRUSTED_ORIGINS = [
+    'https://debsploit-website.onrender.com'
     'http://localhost:8000',
     'http://127.0.0.1:8000',
 ]
@@ -337,6 +342,7 @@ X_FRAME_OPTIONS = 'DENY'
 # CORS Settings (if you need API access from frontend)
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOWED_ORIGINS = [
+    'https://debsploit-website.onrender.com'
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:8080",
@@ -495,16 +501,12 @@ if not DEBUG:
     }
     
     # Use a production database
+    database_url = config('DATABASE_URL')
+
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME'),
-            'USER': config('DB_USER'),
-            'PASSWORD': config('DB_PASSWORD'),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='5432'),
-            'OPTIONS': {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            },
-        }
+        'default': dj_database_url.parse(
+            database_url,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
