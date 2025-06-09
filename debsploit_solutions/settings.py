@@ -313,7 +313,7 @@ CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_USE_SESSIONS = False
 CSRF_TRUSTED_ORIGINS = [
-    'https://debsploit-website.onrender.com'
+    'https://debsploit-website.onrender.com',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
 ]
@@ -342,7 +342,7 @@ X_FRAME_OPTIONS = 'DENY'
 # CORS Settings (if you need API access from frontend)
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOWED_ORIGINS = [
-    'https://debsploit-website.onrender.com'
+    'https://debsploit-website.onrender.com',
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:8080",
