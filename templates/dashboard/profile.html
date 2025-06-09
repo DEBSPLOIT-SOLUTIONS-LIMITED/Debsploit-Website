@@ -1,0 +1,747 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ object.get_full_name|default:object.username }}'s Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: var(--gradient-primary);
+        color: var(--text-white);
+        padding: 3rem 0 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><circle cx="200" cy="200" r="100" fill="rgba(255,255,255,0.1)"/><circle cx="800" cy="300" r="150" fill="rgba(255,255,255,0.05)"/></svg>');
+        animation: float 20s ease-in-out infinite;
+    }
+    
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .profile-avatar-placeholder {
+        width: 120px;
+        height: 120px;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: bold;
+        color: var(--text-white);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .verification-badge {
+        background: var(--success-color);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .skill-badge {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary-color);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.25rem;
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .skill-badge:hover {
+        background: rgba(99, 102, 241, 0.15);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .skill-badge.verified {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-color);
+        border-color: rgba(16, 185, 129, 0.2);
+    }
+    
+    .achievement-card {
+        background: var(--bg-card);
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        margin-bottom: 1rem;
+    }
+    
+    .achievement-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-light);
+    }
+    
+    .stat-widget {
+        background: var(--bg-card);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+        border: 1px solid var(--border-color);
+        text-align: center;
+    }
+    
+    .stat-widget:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-light);
+    }
+    
+    .stat-widget-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: var(--border-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin: 0 auto 1rem;
+        background: var(--gradient-primary);
+        color: var(--text-white);
+    }
+    
+    .stat-widget-value {
+        font-size: 1.875rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-widget-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    .profile-form {
+        background: var(--bg-card);
+        border-radius: var(--border-radius-lg);
+        padding: 2rem;
+        border: 1px solid var(--border-color);
+        margin-top: 2rem;
+    }
+    
+    .form-section {
+        margin-bottom: 2rem;
+    }
+    
+    .form-section h5 {
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        font-weight: 700;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Profile Header -->
+<div class="profile-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center gap-4" data-aos="fade-up">
+                    <!-- Profile Avatar -->
+                    {% if object.profile_picture %}
+                        <img src="{{ object.profile_picture.url }}" alt="{{ object.get_full_name }}" class="profile-avatar">
+                    {% else %}
+                        <div class="profile-avatar-placeholder">
+                            {{ object.first_name.0|upper|default:"U" }}{{ object.last_name.0|upper|default:"" }}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Profile Info -->
+                    <div>
+                        <h1 class="mb-2">{{ object.get_full_name|default:object.username }}</h1>
+                        <p class="mb-2 opacity-90">
+                            <i class="fas fa-user-tag me-2"></i>
+                            {{ object.get_user_type_display|default:"Member" }}
+                            {% if object.job_title %}
+                                • {{ object.job_title }}
+                            {% endif %}
+                        </p>
+                        
+                        {% if object.is_verified %}
+                            <div class="verification-badge">
+                                <i class="fas fa-check-circle"></i>
+                                Verified User
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mt-3">
+                            <span class="me-3">
+                                <i class="fas fa-coins text-warning me-1"></i>
+                                <strong>{{ object.points|default:0 }}</strong> Points
+                            </span>
+                            <span class="me-3">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Member since {{ object.date_joined|date:"M Y" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 text-md-end" data-aos="fade-up" data-aos-delay="200">
+                <a href="#profile-form" class="btn btn-light me-2">
+                    <i class="fas fa-edit"></i>
+                    Edit Profile
+                </a>
+                <a href="{% url 'accounts:user_profile' object.pk %}" class="btn btn-secondary">
+                    <i class="fas fa-eye"></i>
+                    View Public Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Statistics -->
+<div class="container mt-4">
+    <div class="row" data-aos="fade-up">
+        <div class="col-md-3 mb-4">
+            <div class="stat-widget">
+                <div class="stat-widget-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="stat-widget-value">{{ object.points|default:0 }}</div>
+                <div class="stat-widget-label">Total Points</div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="stat-widget">
+                <div class="stat-widget-icon">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <div class="stat-widget-value">{{ user_skills.count }}</div>
+                <div class="stat-widget-label">Skills</div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="stat-widget">
+                <div class="stat-widget-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="stat-widget-value">{{ achievements.count }}</div>
+                <div class="stat-widget-label">Achievements</div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="stat-widget">
+                <div class="stat-widget-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="stat-widget-value">
+                    {% with enrollments=object.enrollment_set.all %}
+                        {{ enrollments.count }}
+                    {% endwith %}
+                </div>
+                <div class="stat-widget-label">Courses Enrolled</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- About Section -->
+            {% if object.bio %}
+            <div class="card mb-4" data-aos="fade-up">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        About
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ object.bio|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Skills Section -->
+            {% if user_skills %}
+            <div class="card mb-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>
+                        Skills & Expertise
+                    </h5>
+                    <a href="{% url 'accounts:user_skills' %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-plus"></i>
+                        Manage Skills
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% regroup user_skills by get_category_display as skills_by_category %}
+                    {% for category in skills_by_category %}
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-primary mb-2">{{ category.grouper }}</h6>
+                            <div class="d-flex flex-wrap">
+                                {% for skill in category.list %}
+                                    <span class="skill-badge {% if skill.is_verified %}verified{% endif %}">
+                                        {{ skill.name }}
+                                        {% if skill.is_verified %}
+                                            <i class="fas fa-check-circle"></i>
+                                        {% endif %}
+                                        <small class="ms-1">({{ skill.get_proficiency_display }})</small>
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Developer Portfolio (if applicable) -->
+            {% if object.user_type == 'developer' %}
+            <div class="card mb-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-folder-open me-2"></i>
+                        Portfolio Projects
+                    </h5>
+                    <a href="{% url 'dashboard:portfolio' %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-plus"></i>
+                        Manage Portfolio
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% with portfolio_projects=object.projectportfolio_set.all|slice:":4" %}
+                        {% if portfolio_projects %}
+                            <div class="row">
+                                {% for project in portfolio_projects %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100 border-0 bg-light">
+                                        {% if project.featured_image %}
+                                            <img src="{{ project.featured_image.url }}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ project.title }}</h6>
+                                            <p class="card-text small text-muted">{{ project.description|truncatewords:15 }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-folder-open fa-3x mb-3 opacity-50"></i>
+                                <p>No portfolio projects yet. Start showcasing your work!</p>
+                                <a href="{% url 'dashboard:portfolio' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Add Project
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Profile Update Form -->
+            <div class="profile-form" id="profile-form" data-aos="fade-up" data-aos-delay="300">
+                <h4 class="mb-3">
+                    <i class="fas fa-edit me-2"></i>
+                    Update Profile
+                </h4>
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Personal Information -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-user me-2"></i>Personal Information</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small">{{ form.first_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small">{{ form.last_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.phone.id_for_label }}" class="form-label">Phone</label>
+                                {{ form.phone }}
+                                {% if form.phone.errors %}
+                                    <div class="text-danger small">{{ form.phone.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.bio.id_for_label }}" class="form-label">Bio</label>
+                            {{ form.bio }}
+                            {% if form.bio.errors %}
+                                <div class="text-danger small">{{ form.bio.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">Tell us about yourself, your interests, and what you're working on.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.profile_picture.id_for_label }}" class="form-label">Profile Picture</label>
+                            {{ form.profile_picture }}
+                            {% if form.profile_picture.errors %}
+                                <div class="text-danger small">{{ form.profile_picture.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Professional Information -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-briefcase me-2"></i>Professional Information</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.company.id_for_label }}" class="form-label">Company</label>
+                                {{ form.company }}
+                                {% if form.company.errors %}
+                                    <div class="text-danger small">{{ form.company.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.job_title.id_for_label }}" class="form-label">Job Title</label>
+                                {{ form.job_title }}
+                                {% if form.job_title.errors %}
+                                    <div class="text-danger small">{{ form.job_title.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.experience_years.id_for_label }}" class="form-label">Years of Experience</label>
+                                {{ form.experience_years }}
+                                {% if form.experience_years.errors %}
+                                    <div class="text-danger small">{{ form.experience_years.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.skill_level.id_for_label }}" class="form-label">Skill Level</label>
+                                {{ form.skill_level }}
+                                {% if form.skill_level.errors %}
+                                    <div class="text-danger small">{{ form.skill_level.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Location Information -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-map-marker-alt me-2"></i>Location</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.country.id_for_label }}" class="form-label">Country</label>
+                                {{ form.country }}
+                                {% if form.country.errors %}
+                                    <div class="text-danger small">{{ form.country.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.city.id_for_label }}" class="form-label">City</label>
+                                {{ form.city }}
+                                {% if form.city.errors %}
+                                    <div class="text-danger small">{{ form.city.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
+                                {{ form.date_of_birth }}
+                                {% if form.date_of_birth.errors %}
+                                    <div class="text-danger small">{{ form.date_of_birth.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
+                            {{ form.address }}
+                            {% if form.address.errors %}
+                                <div class="text-danger small">{{ form.address.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Social Links -->
+                    <div class="form-section">
+                        <h5><i class="fas fa-link me-2"></i>Social Links</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.linkedin_url.id_for_label }}" class="form-label">LinkedIn URL</label>
+                                {{ form.linkedin_url }}
+                                {% if form.linkedin_url.errors %}
+                                    <div class="text-danger small">{{ form.linkedin_url.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.github_url.id_for_label }}" class="form-label">GitHub URL</label>
+                                {{ form.github_url }}
+                                {% if form.github_url.errors %}
+                                    <div class="text-danger small">{{ form.github_url.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.portfolio_url.id_for_label }}" class="form-label">Portfolio URL</label>
+                                {{ form.portfolio_url }}
+                                {% if form.portfolio_url.errors %}
+                                    <div class="text-danger small">{{ form.portfolio_url.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>
+                            Update Profile
+                        </button>
+                        <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Recent Achievements -->
+            {% if achievements %}
+            <div class="card mb-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trophy me-2"></i>
+                        Recent Achievements
+                    </h5>
+                    <a href="{% url 'accounts:achievements' %}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% for achievement in achievements|slice:":5" %}
+                        <div class="achievement-card">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="text-warning">
+                                    <i class="fas fa-trophy fa-lg"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ achievement.title }}</h6>
+                                    <small class="text-muted">{{ achievement.earned_date|date:"M d, Y" }}</small>
+                                    <div class="text-primary small">
+                                        +{{ achievement.points_awarded }} points
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Quick Actions -->
+            <div class="card mb-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'accounts:user_skills' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-cogs me-2"></i>
+                            Manage Skills
+                        </a>
+                        
+                        {% if object.user_type == 'developer' %}
+                            <a href="{% url 'dashboard:portfolio' %}" class="btn btn-outline-success">
+                                <i class="fas fa-briefcase me-2"></i>
+                                Manage Portfolio
+                            </a>
+                            <a href="{% url 'dashboard:tasks' %}" class="btn btn-outline-info">
+                                <i class="fas fa-tasks me-2"></i>
+                                Browse Tasks
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'dashboard:courses' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-graduation-cap me-2"></i>
+                            My Courses
+                        </a>
+                        
+                        <a href="{% url 'accounts:export_user_data' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-download me-2"></i>
+                            Export Data
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Completeness -->
+            <div class="card" data-aos="fade-up" data-aos-delay="300">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Profile Completeness
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% comment %}Calculate profile completeness{% endcomment %}
+                    {% with completeness=0 %}
+                        {% if object.first_name %}{% with completeness=completeness|add:15 %}{% endwith %}{% endif %}
+                        {% if object.last_name %}{% with completeness=completeness|add:15 %}{% endwith %}{% endif %}
+                        {% if object.bio %}{% with completeness=completeness|add:20 %}{% endwith %}{% endif %}
+                        {% if object.profile_picture %}{% with completeness=completeness|add:10 %}{% endwith %}{% endif %}
+                        {% if object.company %}{% with completeness=completeness|add:10 %}{% endwith %}{% endif %}
+                        {% if object.job_title %}{% with completeness=completeness|add:10 %}{% endwith %}{% endif %}
+                        {% if object.country %}{% with completeness=completeness|add:10 %}{% endwith %}{% endif %}
+                        {% if user_skills %}{% with completeness=completeness|add:10 %}{% endwith %}{% endif %}
+                        
+                        <div class="progress mb-3" style="height: 20px;">
+                            <div class="progress-bar bg-primary" role="progressbar" 
+                                 style="width: {{ completeness }}%" 
+                                 aria-valuenow="{{ completeness }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                {{ completeness }}%
+                            </div>
+                        </div>
+                        
+                        <div class="small text-muted">
+                            {% if completeness < 50 %}
+                                <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                                Complete your profile to unlock more features and increase visibility.
+                            {% elif completeness < 80 %}
+                                <i class="fas fa-info-circle text-info me-1"></i>
+                                Great progress! Add a few more details to complete your profile.
+                            {% else %}
+                                <i class="fas fa-check-circle text-success me-1"></i>
+                                Excellent! Your profile is well-completed.
+                            {% endif %}
+                        </div>
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add form field styling
+document.addEventListener('DOMContentLoaded', function() {
+    // Add Bootstrap form-control class to all form fields
+    const formFields = document.querySelectorAll('input, select, textarea');
+    formFields.forEach(field => {
+        if (!field.classList.contains('btn') && !field.classList.contains('form-check-input')) {
+            field.classList.add('form-control');
+        }
+    });
+    
+    // Handle file input styling
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+        input.classList.add('form-control');
+    });
+    
+    // Auto-resize textarea
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+});
+
+// Profile picture preview
+const profilePictureInput = document.querySelector('input[name="profile_picture"]');
+if (profilePictureInput) {
+    profilePictureInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const existingImg = document.querySelector('.profile-avatar');
+                if (existingImg) {
+                    existingImg.src = e.target.result;
+                } else {
+                    const placeholder = document.querySelector('.profile-avatar-placeholder');
+                    if (placeholder) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'profile-avatar';
+                        img.alt = 'Profile Picture';
+                        placeholder.parentNode.replaceChild(img, placeholder);
+                    }
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+// Smooth scroll to form
+document.querySelector('a[href="#profile-form"]')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('profile-form').scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+    });
+});
+</script>
+{% endblock %}

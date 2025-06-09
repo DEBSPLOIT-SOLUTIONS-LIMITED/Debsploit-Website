@@ -1,0 +1,610 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if profile_user == request.user %}My Achievements{% else %}{{ profile_user.get_full_name }}'s Achievements{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .achievements-header {
+        background: var(--gradient-primary);
+        color: var(--text-white);
+        padding: 3rem 0 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .achievements-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><circle cx="200" cy="200" r="100" fill="rgba(255,255,255,0.1)"/><circle cx="800" cy="300" r="150" fill="rgba(255,255,255,0.05)"/></svg>');
+        animation: float 20s ease-in-out infinite;
+    }
+    
+    .achievement-card {
+        background: var(--bg-card);
+        border-radius: var(--border-radius-lg);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        position: relative;
+        height: 100%;
+    }
+    
+    .achievement-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-secondary);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .achievement-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-light);
+    }
+    
+    .achievement-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .achievement-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin: 0 auto 1rem;
+        position: relative;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .achievement-type-task_completed .achievement-icon {
+        background: var(--gradient-primary);
+        color: white;
+    }
+    
+    .achievement-type-points_milestone .achievement-icon {
+        background: var(--gradient-secondary);
+        color: white;
+    }
+    
+    .achievement-type-skill_verified .achievement-icon {
+        background: var(--gradient-accent);
+        color: white;
+    }
+    
+    .achievement-type-course_completed .achievement-icon {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .achievement-type-community .achievement-icon {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+    
+    .achievement-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        width: 24px;
+        height: 24px;
+        background: var(--warning-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        color: white;
+        border: 2px solid white;
+    }
+    
+    .achievement-stats {
+        background: var(--bg-secondary);
+        border-radius: var(--border-radius-lg);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 900;
+        margin-bottom: 0.5rem;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+    
+    .achievement-timeline {
+        position: relative;
+        padding: 2rem 0;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding: 0 0 3rem 4rem;
+        border-left: 2px solid var(--border-color);
+    }
+    
+    .timeline-item:last-child {
+        border-left: 2px solid transparent;
+        padding-bottom: 0;
+    }
+    
+    .timeline-icon {
+        position: absolute;
+        left: -1.5rem;
+        top: 0;
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        background: var(--gradient-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+        border: 3px solid white;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .timeline-content {
+        background: var(--bg-card);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        border: 1px solid var(--border-color);
+        margin-top: -0.5rem;
+    }
+    
+    .achievement-filter {
+        margin-bottom: 2rem;
+    }
+    
+    .filter-button {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border-color);
+        background: var(--bg-card);
+        color: var(--text-secondary);
+        border-radius: 20px;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        margin: 0.25rem;
+        cursor: pointer;
+    }
+    
+    .filter-button:hover {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+    
+    .filter-button.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-secondary);
+    }
+    
+    .empty-state i {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.3;
+    }
+    
+    .points-badge {
+        background: var(--gradient-secondary);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .recent-achievement {
+        animation: glow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes glow {
+        from {
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+        }
+        to {
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.6);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Achievements Header -->
+<div class="achievements-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div data-aos="fade-up">
+                    <h1 class="mb-2">
+                        <i class="fas fa-trophy me-3"></i>
+                        {% if profile_user == request.user %}
+                            My Achievements
+                        {% else %}
+                            {{ profile_user.get_full_name }}'s Achievements
+                        {% endif %}
+                    </h1>
+                    <p class="mb-0 opacity-90">
+                        {% if profile_user == request.user %}
+                            Your journey of accomplishments and milestones reached.
+                        {% else %}
+                            Celebrating {{ profile_user.first_name }}'s accomplishments and milestones.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end" data-aos="fade-up" data-aos-delay="200">
+                <div class="text-white">
+                    <div class="h4 mb-1">{{ stats.total_achievements }}</div>
+                    <div>Total Achievements</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <!-- Achievement Statistics -->
+    <div class="achievement-stats" data-aos="fade-up">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.total_achievements }}</div>
+                    <div class="stat-label">Total Achievements</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.total_points_from_achievements }}</div>
+                    <div class="stat-label">Points Earned</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.achievement_types.count }}</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">
+                        {% if stats.recent_achievements %}5{% else %}0{% endif %}
+                    </div>
+                    <div class="stat-label">Recent (30 days)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Achievement Filters -->
+    <div class="achievement-filter" data-aos="fade-up" data-aos-delay="100">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="text-muted me-2">Filter by type:</span>
+            <button class="filter-button active" data-filter="all">
+                <i class="fas fa-globe me-1"></i>
+                All
+            </button>
+            <button class="filter-button" data-filter="task_completed">
+                <i class="fas fa-check-circle me-1"></i>
+                Tasks
+            </button>
+            <button class="filter-button" data-filter="points_milestone">
+                <i class="fas fa-coins me-1"></i>
+                Points
+            </button>
+            <button class="filter-button" data-filter="skill_verified">
+                <i class="fas fa-shield-alt me-1"></i>
+                Skills
+            </button>
+            <button class="filter-button" data-filter="course_completed">
+                <i class="fas fa-graduation-cap me-1"></i>
+                Courses
+            </button>
+            <button class="filter-button" data-filter="community">
+                <i class="fas fa-users me-1"></i>
+                Community
+            </button>
+        </div>
+    </div>
+    
+    <!-- Achievement Grid -->
+    {% if achievements %}
+    <div class="row" id="achievements-grid">
+        {% for achievement in achievements %}
+        <div class="col-lg-4 col-md-6 mb-4 achievement-item {% if forloop.counter <= 3 %}recent-achievement{% endif %}" 
+             data-type="{{ achievement.achievement_type }}"
+             data-aos="fade-up" 
+             data-aos-delay="{{ forloop.counter0|add:1|floatformat:0|mul:100 }}">
+            <div class="achievement-card achievement-type-{{ achievement.achievement_type }}">
+                <div class="card-body text-center p-4">
+                    <!-- Achievement Icon -->
+                    <div class="achievement-icon">
+                        {% if achievement.achievement_type == 'task_completed' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif achievement.achievement_type == 'points_milestone' %}
+                            <i class="fas fa-coins"></i>
+                        {% elif achievement.achievement_type == 'skill_verified' %}
+                            <i class="fas fa-shield-alt"></i>
+                        {% elif achievement.achievement_type == 'course_completed' %}
+                            <i class="fas fa-graduation-cap"></i>
+                        {% elif achievement.achievement_type == 'community' %}
+                            <i class="fas fa-users"></i>
+                        {% else %}
+                            <i class="fas fa-trophy"></i>
+                        {% endif %}
+                        
+                        {% if forloop.counter <= 3 %}
+                            <div class="achievement-badge">
+                                <i class="fas fa-star"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Achievement Info -->
+                    <h5 class="card-title mb-2">{{ achievement.title }}</h5>
+                    <p class="card-text text-muted small mb-3">{{ achievement.description }}</p>
+                    
+                    <!-- Points Badge -->
+                    <div class="mb-3">
+                        <span class="points-badge">
+                            <i class="fas fa-coins"></i>
+                            +{{ achievement.points_awarded }} points
+                        </span>
+                    </div>
+                    
+                    <!-- Achievement Date -->
+                    <div class="text-muted small">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        Earned {{ achievement.earned_date|date:"M d, Y" }}
+                        <br>
+                        <small>{{ achievement.earned_date|timesince }} ago</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if achievements.has_other_pages %}
+    <nav aria-label="Achievement pagination" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if achievements.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ achievements.previous_page_number }}">
+                        <i class="fas fa-chevron-left"></i>
+                        Previous
+                    </a>
+                </li>
+            {% endif %}
+            
+            {% for num in achievements.paginator.page_range %}
+                {% if achievements.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > achievements.number|add:'-3' and num < achievements.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if achievements.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ achievements.next_page_number }}">
+                        Next
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state" data-aos="fade-up">
+        <i class="fas fa-trophy"></i>
+        <h4>No Achievements Yet</h4>
+        <p class="mb-4">
+            {% if profile_user == request.user %}
+                Start completing tasks and learning to earn your first achievements!
+            {% else %}
+                {{ profile_user.first_name }} hasn't earned any achievements yet.
+            {% endif %}
+        </p>
+        {% if profile_user == request.user %}
+        <div class="d-flex gap-2 justify-content-center">
+            <a href="{% url 'services:service_list' %}" class="btn btn-primary">
+                <i class="fas fa-tasks me-1"></i>
+                Browse Services
+            </a>
+            <a href="{% url 'core:home' %}" class="btn btn-outline-primary">
+                <i class="fas fa-home me-1"></i>
+                Back to Dashboard
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- Achievement Timeline (Recent) -->
+    {% if stats.recent_achievements %}
+    <div class="mt-5" data-aos="fade-up">
+        <h4 class="mb-4">
+            <i class="fas fa-clock me-2"></i>
+            Recent Activity
+        </h4>
+        
+        <div class="achievement-timeline">
+            {% for achievement in stats.recent_achievements %}
+            <div class="timeline-item">
+                <div class="timeline-icon">
+                    {% if achievement.achievement_type == 'task_completed' %}
+                        <i class="fas fa-check-circle"></i>
+                    {% elif achievement.achievement_type == 'points_milestone' %}
+                        <i class="fas fa-coins"></i>
+                    {% elif achievement.achievement_type == 'skill_verified' %}
+                        <i class="fas fa-shield-alt"></i>
+                    {% elif achievement.achievement_type == 'course_completed' %}
+                        <i class="fas fa-graduation-cap"></i>
+                    {% else %}
+                        <i class="fas fa-trophy"></i>
+                    {% endif %}
+                </div>
+                
+                <div class="timeline-content">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="mb-1">{{ achievement.title }}</h6>
+                        <span class="points-badge">
+                            <i class="fas fa-coins"></i>
+                            +{{ achievement.points_awarded }}
+                        </span>
+                    </div>
+                    <p class="text-muted small mb-2">{{ achievement.description }}</p>
+                    <small class="text-muted">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        {{ achievement.earned_date|date:"M d, Y" }} • {{ achievement.earned_date|timesince }} ago
+                    </small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Achievement filtering
+const filterButtons = document.querySelectorAll('.filter-button');
+const achievementItems = document.querySelectorAll('.achievement-item');
+
+filterButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const filter = this.getAttribute('data-filter');
+        
+        // Update active button
+        filterButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Filter achievements
+        achievementItems.forEach(item => {
+            const itemType = item.getAttribute('data-type');
+            
+            if (filter === 'all' || itemType === filter) {
+                item.style.display = 'block';
+                item.style.animation = 'fadeIn 0.5s ease';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Update grid layout
+        setTimeout(() => {
+            AOS.refresh();
+        }, 100);
+    });
+});
+
+// Add CSS for fade animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+`;
+document.head.appendChild(style);
+
+// Achievement card hover effects
+document.querySelectorAll('.achievement-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-10px) scale(1.02)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(-5px) scale(1)';
+    });
+});
+
+// Confetti effect for recent achievements
+function createConfetti() {
+    const colors = ['#f39c12', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'];
+    
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.position = 'fixed';
+        confetti.style.width = '10px';
+        confetti.style.height = '10px';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.borderRadius = '50%';
+        confetti.style.pointerEvents = 'none';
+        confetti.style.zIndex = '9999';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.top = '-10px';
+        confetti.style.animation = `fall ${Math.random() * 3 + 2}s linear forwards`;
+        
+        document.body.appendChild(confetti);
+        
+        setTimeout(() => confetti.remove(), 5000);
+    }
+}
+
+// Add fall animation for confetti
+const confettiStyle = document.createElement('style');
+confettiStyle.textContent = `
+    @keyframes fall {
+        to {
+            transform: translateY(100vh) rotate(360deg);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(confettiStyle);
+
+// Trigger confetti on page load if there are recent achievements
+if (document.querySelector('.recent-achievement')) {
+    setTimeout(createConfetti, 1000);
+}
+</script>
+{% endblock %}
