@@ -30,8 +30,8 @@
                         <small>Services Available</small>
                     </div>
                     <div class="stat-item p-3 bg-white bg-opacity-10 rounded">
-                        <div class="h4 fw-bold mb-1">{{ root_categories|length }}+</div>
-                        <small>Main Categories</small>
+                        <div class="h4 fw-bold mb-1">{{ service_types|length }}+</div>
+                        <small>Service Types</small>
                     </div>
                 </div>
             </div>
@@ -39,8 +39,34 @@
     </div>
 </section>
 
+<!-- Service Type Navigation -->
+<section class="service-type-nav py-4 bg-light border-bottom">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="service-type-filters d-flex align-items-center justify-content-center flex-wrap">
+                    <span class="me-3 fw-semibold">Browse by Service Type:</span>
+                    <a href="{% url 'services:service_list' %}" class="btn btn-sm {% if not current_filters.type %}btn-primary{% else %}btn-outline-primary{% endif %} me-2 mb-2">
+                        <i class="fas fa-th-large me-1"></i>All Services
+                    </a>
+                    {% for type_code, type_name in service_types %}
+                    <a href="?type={{ type_code }}" class="btn btn-sm {% if current_filters.type == type_code %}btn-primary{% else %}btn-outline-secondary{% endif %} me-2 mb-2" data-type="{{ type_code }}">
+                        {% if type_code == 'training' %}<i class="fas fa-graduation-cap me-1"></i>{% endif %}
+                        {% if type_code == 'development' %}<i class="fas fa-code me-1"></i>{% endif %}
+                        {% if type_code == 'consultation' %}<i class="fas fa-handshake me-1"></i>{% endif %}
+                        {% if type_code == 'installation' %}<i class="fas fa-cogs me-1"></i>{% endif %}
+                        {% if type_code == 'maintenance' %}<i class="fas fa-tools me-1"></i>{% endif %}
+                        {{ type_name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Filters Section -->
-<section class="filters-section py-4 bg-light border-bottom">
+<section class="filters-section py-4 bg-white border-bottom">
     <div class="container">
         <form method="get" class="filters-form" id="servicesFilter">
             <div class="row align-items-center">
@@ -62,7 +88,7 @@
                         {% endfor %}
                     </select>
                 </div>
-                <!-- Type Filter -->
+                <!-- Type Filter (Hidden if already selected via nav) -->
                 <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
                     <select class="form-select" name="type" id="typeFilter">
                         <option value="">All Types</option>
@@ -110,8 +136,8 @@
                         <span class="me-2 fw-semibold">Active Filters:</span>
                         {% if current_filters.search %}<span class="badge bg-primary me-1 mb-1">Search: "{{ current_filters.search }}"</span>{% endif %}
                         {% if current_filters.category %}<span class="badge bg-secondary me-1 mb-1">Category</span>{% endif %}
-                        {% if current_filters.type %}<span class="badge bg-info me-1 mb-1">Type</span>{% endif %}
-                        {% if current_filters.difficulty %}<span class="badge bg-warning me-1 mb-1">Level</span>{% endif %}
+                        {% if current_filters.type %}<span class="badge bg-info me-1 mb-1">{{ current_filters.type|title }}</span>{% endif %}
+                        {% if current_filters.difficulty %}<span class="badge bg-warning me-1 mb-1">{{ current_filters.difficulty|title }}</span>{% endif %}
                         {% if current_filters.min_price or current_filters.max_price %}<span class="badge bg-success me-1 mb-1">Price Range</span>{% endif %}
                         <a href="{% url 'services:service_list' %}" class="btn btn-sm btn-outline-danger">Clear All</a>
                     </div>
@@ -134,12 +160,19 @@
         <div class="row">
             {% for service in featured_services %}
             <div class="col-lg-4 col-md-6 mb-3">
-                <div class="featured-service-card">
+                <div class="featured-service-card service-type-{{ service.service_type }}">
                     <div class="d-flex align-items-center">
                         <div class="service-icon me-3">
-                            <i class="{{ service.icon|default:'fas fa-cogs' }}"></i>
+                            {% if service.service_type == 'training' %}<i class="fas fa-graduation-cap"></i>{% endif %}
+                            {% if service.service_type == 'development' %}<i class="fas fa-code"></i>{% endif %}
+                            {% if service.service_type == 'consultation' %}<i class="fas fa-handshake"></i>{% endif %}
+                            {% if service.service_type == 'installation' %}<i class="fas fa-cogs"></i>{% endif %}
+                            {% if service.service_type == 'maintenance' %}<i class="fas fa-tools"></i>{% endif %}
                         </div>
                         <div class="flex-grow-1">
+                            <div class="service-type-badge mb-1">
+                                <span class="badge bg-{{ service.service_type }}">{{ service.get_service_type_display }}</span>
+                            </div>
                             <h6 class="mb-1"><a href="{{ service.get_absolute_url }}" class="text-decoration-none">{{ service.title }}</a></h6>
                             <small class="text-muted">{{ service.category.get_full_name }}</small>
                             <div class="service-price">
@@ -147,9 +180,6 @@
                                     {% if service.has_discount %}
                                     <span class="fw-bold text-primary">{{ service.discount_price|currency }}</span>
                                     <span class="text-muted text-decoration-line-through ms-2 small">{{ service.price|currency }}</span>
-                                    <div class="discount-badge mt-1">
-                                        <span class="badge bg-success small">Save {{ service.discount_amount|currency }}</span>
-                                    </div>
                                     {% else %}
                                     <span class="fw-bold text-primary">{{ service.price|currency }}</span>
                                     {% endif %}
@@ -167,28 +197,38 @@
 </section>
 {% endif %}
 
-<!-- Services Grid -->
-<section class="services-grid py-5">
+<!-- Services by Type Sections -->
+{% if current_filters.type %}
+<!-- Single Service Type View -->
+<section class="services-by-type py-5">
     <div class="container">
-        {% if services %}
-        <!-- Results Header -->
         <div class="row mb-4">
-            <div class="col-md-6">
-                <p class="text-muted mb-0">Showing {{ services|length }} of {{ paginator.count }} services</p>
-            </div>
-            <div class="col-md-6 text-md-end">
-                <div class="view-toggle btn-group" role="group">
-                    <button type="button" class="btn btn-outline-primary active" id="gridView"><i class="fas fa-th-large"></i></button>
-                    <button type="button" class="btn btn-outline-primary" id="listView"><i class="fas fa-list"></i></button>
+            <div class="col-lg-8 mx-auto text-center">
+                <div class="service-type-header">
+                    <div class="service-type-icon mb-3">
+                        {% if current_filters.type == 'training' %}<i class="fas fa-graduation-cap"></i>{% endif %}
+                        {% if current_filters.type == 'development' %}<i class="fas fa-code"></i>{% endif %}
+                        {% if current_filters.type == 'consultation' %}<i class="fas fa-handshake"></i>{% endif %}
+                        {% if current_filters.type == 'installation' %}<i class="fas fa-cogs"></i>{% endif %}
+                        {% if current_filters.type == 'maintenance' %}<i class="fas fa-tools"></i>{% endif %}
+                    </div>
+                    <h2 class="display-6 fw-bold mb-3">{{ current_filters.type|title }} Services</h2>
+                    <p class="lead text-muted">
+                        {% if current_filters.type == 'training' %}Enhance your skills with our comprehensive training programs{% endif %}
+                        {% if current_filters.type == 'development' %}Custom software solutions tailored to your business needs{% endif %}
+                        {% if current_filters.type == 'consultation' %}Expert guidance to optimize your technology strategy{% endif %}
+                        {% if current_filters.type == 'installation' %}Professional setup and configuration services{% endif %}
+                        {% if current_filters.type == 'maintenance' %}Ongoing support to keep your systems running smoothly{% endif %}
+                    </p>
                 </div>
             </div>
         </div>
         
-        <!-- Services Grid View -->
-        <div class="row services-container" id="servicesGrid">
+        {% if services %}
+        <div class="row">
             {% for service in services %}
-            <div class="col-lg-4 col-md-6 mb-4 service-item" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
-                <div class="service-card h-100">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="service-card service-type-{{ service.service_type }} h-100" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
                     {% if service.featured_image %}
                     <div class="service-image">
                         <img src="{{ service.featured_image.url }}" alt="{{ service.title }}" class="img-fluid">
@@ -204,10 +244,10 @@
                     
                     <div class="service-content">
                         <div class="service-header mb-3">
-                            <div class="service-icon mb-2">
-                                <i class="{{ service.icon|default:'fas fa-cogs' }}"></i>
+                            <div class="service-type-indicator">
+                                <span class="badge bg-{{ service.service_type }}">{{ service.get_service_type_display }}</span>
+                                <span class="badge bg-light text-dark">{{ service.category.name }}</span>
                             </div>
-                            <span class="badge bg-primary">{{ service.category.get_full_name }}</span>
                         </div>
                         
                         <h5 class="service-title mb-3">
@@ -216,25 +256,54 @@
                         
                         <p class="service-description text-muted mb-3">{{ service.description|truncatewords:20 }}</p>
                         
-                        <div class="service-meta mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ service.duration_weeks|format_duration }}</small>
-                                {% if service.average_rating > 0 %}
-                                <div class="rating">
-                                    <span class="text-warning">
-                                        {% for i in "12345" %}
-                                            {% if forloop.counter <= service.average_rating %}
-                                                <i class="fas fa-star"></i>
-                                            {% else %}
-                                                <i class="far fa-star"></i>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </span>
-                                    <small class="text-muted ms-1">({{ service.average_rating|floatformat:1 }})</small>
-                                </div>
+                        <!-- Service Type Specific Info -->
+                        <div class="service-type-info mb-3">
+                            {% if service.service_type == 'training' %}
+                            <div class="training-info">
+                                <small class="text-muted d-block"><i class="fas fa-clock me-1"></i>Duration: {{ service.duration_weeks|format_duration }}</small>
+                                {% if service.max_participants %}
+                                <small class="text-muted d-block"><i class="fas fa-users me-1"></i>Max: {{ service.max_participants }} participants</small>
                                 {% endif %}
                             </div>
+                            {% elif service.service_type == 'development' %}
+                            <div class="development-info">
+                                <small class="text-muted d-block"><i class="fas fa-laptop-code me-1"></i>Custom Development</small>
+                                <small class="text-muted d-block"><i class="fas fa-calendar me-1"></i>Timeline: {{ service.duration_weeks|format_duration }}</small>
+                            </div>
+                            {% elif service.service_type == 'consultation' %}
+                            <div class="consultation-info">
+                                <small class="text-muted d-block"><i class="fas fa-user-tie me-1"></i>Expert Consultation</small>
+                                <small class="text-muted d-block"><i class="fas fa-handshake me-1"></i>One-on-One Sessions</small>
+                            </div>
+                            {% elif service.service_type == 'installation' %}
+                            <div class="installation-info">
+                                <small class="text-muted d-block"><i class="fas fa-download me-1"></i>Professional Setup</small>
+                                <small class="text-muted d-block"><i class="fas fa-shield-alt me-1"></i>Warranty Included</small>
+                            </div>
+                            {% elif service.service_type == 'maintenance' %}
+                            <div class="maintenance-info">
+                                <small class="text-muted d-block"><i class="fas fa-wrench me-1"></i>Ongoing Support</small>
+                                <small class="text-muted d-block"><i class="fas fa-clock me-1"></i>24/7 Monitoring</small>
+                            </div>
+                            {% endif %}
                         </div>
+                        
+                        {% if service.average_rating > 0 %}
+                        <div class="service-rating mb-3">
+                            <div class="rating">
+                                <span class="text-warning">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= service.average_rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                                <small class="text-muted ms-1">({{ service.average_rating|floatformat:1 }})</small>
+                            </div>
+                        </div>
+                        {% endif %}
                         
                         <div class="service-footer d-flex justify-content-between align-items-center">
                             <div class="service-price">
@@ -249,123 +318,136 @@
                                 <span class="price-contact text-muted">Contact for pricing</span>
                                 {% endif %}
                             </div>
-                            <a href="{{ service.get_absolute_url }}" class="btn btn-primary btn-sm">Learn More <i class="fas fa-arrow-right ms-1"></i></a>
+                            <a href="{{ service.get_absolute_url }}" class="btn btn-{{ service.service_type }} btn-sm">
+                                {% if service.service_type == 'training' %}Enroll Now{% endif %}
+                                {% if service.service_type == 'development' %}Get Quote{% endif %}
+                                {% if service.service_type == 'consultation' %}Book Session{% endif %}
+                                {% if service.service_type == 'installation' %}Schedule Install{% endif %}
+                                {% if service.service_type == 'maintenance' %}Get Support{% endif %}
+                                <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
-        
-        <!-- Services List View -->
-        <div class="services-list d-none" id="servicesList">
-            {% for service in services %}
-            <div class="service-list-item mb-4" data-aos="fade-up">
-                <div class="row align-items-center">
-                    <div class="col-md-3">
-                        {% if service.featured_image %}
-                        <img src="{{ service.featured_image.url }}" alt="{{ service.title }}" class="img-fluid rounded">
-                        {% else %}
-                        <div class="service-placeholder bg-gradient-primary rounded d-flex align-items-center justify-content-center" style="height: 120px;">
-                            <i class="{{ service.icon|default:'fas fa-cogs' }} fa-2x text-white"></i>
-                        </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-6">
-                        <div class="service-badges mb-2">
-                            <span class="badge bg-primary">{{ service.category.get_full_name }}</span>
-                            {% if service.is_featured %}<span class="badge bg-warning">Featured</span>{% endif %}
-                            {% if service.service_type %}<span class="badge bg-info">{{ service.get_service_type_display }}</span>{% endif %}
-                        </div>
-                        <h5 class="mb-2"><a href="{{ service.get_absolute_url }}" class="text-decoration-none">{{ service.title }}</a></h5>
-                        <p class="text-muted mb-2">{{ service.description|truncatewords:30 }}</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ service.duration_weeks|format_duration }}</small>
-                            {% if service.average_rating > 0 %}
-                            <div class="rating">
-                                <span class="text-warning">
-                                    {% for i in "12345" %}
-                                        {% if forloop.counter <= service.average_rating %}
-                                            <i class="fas fa-star"></i>
-                                        {% else %}
-                                            <i class="far fa-star"></i>
-                                        {% endif %}
-                                    {% endfor %}
-                                </span>
-                                <small class="text-muted ms-1">({{ service.average_rating|floatformat:1 }})</small>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="col-md-3 text-md-end">
-                        <div class="service-price mb-3">
-                            {% if service.price %}
-                                {% if service.has_discount %}
-                                <div class="price-current h5 fw-bold text-primary mb-0">{{ service.discount_price|currency }}</div>
-                                <div class="price-original text-muted text-decoration-line-through">{{ service.price|currency }}</div>
-                                <div class="discount-badge">
-                                    <span class="badge bg-success">Save {{ service.discount_amount|currency }}</span>
-                                </div>
-                                {% else %}
-                                <div class="price-current h5 fw-bold text-primary mb-0">{{ service.price|currency }}</div>
-                                {% endif %}
-                            {% else %}
-                            <div class="price-contact text-muted">Contact for pricing</div>
-                            {% endif %}
-                        </div>
-                        <a href="{{ service.get_absolute_url }}" class="btn btn-primary">Learn More <i class="fas fa-arrow-right ms-1"></i></a>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <!-- Pagination -->
-        {% if is_paginated %}
-        <div class="row mt-5">
-            <div class="col-12">
-                <nav aria-label="Services pagination">
-                    <ul class="pagination justify-content-center">
-                        {% if page_obj.has_previous %}
-                        <li class="page-item"><a class="page-link" href="?page=1{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-double-left"></i></a></li>
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-left"></i></a></li>
-                        {% endif %}
-                        
-                        {% for num in paginator.page_range %}
-                        {% if page_obj.number == num %}
-                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                        <li class="page-item"><a class="page-link" href="?page={{ num }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a></li>
-                        {% endif %}
-                        {% endfor %}
-                        
-                        {% if page_obj.has_next %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-right"></i></a></li>
-                        <li class="page-item"><a class="page-link" href="?page={{ paginator.num_pages }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-double-right"></i></a></li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            </div>
-        </div>
-        {% endif %}
-        
         {% else %}
-        <!-- No Services Found -->
         <div class="row">
             <div class="col-lg-8 mx-auto text-center py-5">
                 <i class="fas fa-search fa-4x text-muted mb-4"></i>
-                <h3 class="mb-3">No Services Found</h3>
-                <p class="text-muted mb-4">We couldn't find any services matching your criteria.</p>
+                <h3 class="mb-3">No {{ current_filters.type|title }} Services Found</h3>
+                <p class="text-muted mb-4">We couldn't find any {{ current_filters.type }} services matching your criteria.</p>
                 <a href="{% url 'services:service_list' %}" class="btn btn-primary me-2">View All Services</a>
-                <a href="{% url 'core:contact' %}" class="btn btn-outline-primary">Contact Us</a>
+                <a href="{% url 'core:contact' %}" class="btn btn-outline-primary">Request Custom Service</a>
             </div>
         </div>
         {% endif %}
     </div>
 </section>
 
+{% else %}
+<!-- All Services View - Grouped by Type -->
+{% regroup services by service_type as services_by_type %}
+
+{% for service_group in services_by_type %}
+<section class="services-by-type py-5 {% cycle 'bg-white' 'bg-light' %}">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-lg-8 mx-auto text-center">
+                <div class="service-type-header">
+                    <div class="service-type-icon mb-3">
+                        {% if service_group.grouper == 'training' %}<i class="fas fa-graduation-cap"></i>{% endif %}
+                        {% if service_group.grouper == 'development' %}<i class="fas fa-code"></i>{% endif %}
+                        {% if service_group.grouper == 'consultation' %}<i class="fas fa-handshake"></i>{% endif %}
+                        {% if service_group.grouper == 'installation' %}<i class="fas fa-cogs"></i>{% endif %}
+                        {% if service_group.grouper == 'maintenance' %}<i class="fas fa-tools"></i>{% endif %}
+                    </div>
+                    <h2 class="display-6 fw-bold mb-3">{{ service_group.grouper|title }} Services</h2>
+                    <p class="lead text-muted">
+                        {% if service_group.grouper == 'training' %}Enhance your skills with our comprehensive training programs{% endif %}
+                        {% if service_group.grouper == 'development' %}Custom software solutions tailored to your business needs{% endif %}
+                        {% if service_group.grouper == 'consultation' %}Expert guidance to optimize your technology strategy{% endif %}
+                        {% if service_group.grouper == 'installation' %}Professional setup and configuration services{% endif %}
+                        {% if service_group.grouper == 'maintenance' %}Ongoing support to keep your systems running smoothly{% endif %}
+                    </p>
+                    <a href="?type={{ service_group.grouper }}" class="btn btn-{{ service_group.grouper }} mb-4">
+                        View All {{ service_group.grouper|title }} Services <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for service in service_group.list|slice:":6" %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="service-card service-type-{{ service.service_type }} h-100" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
+                    {% if service.featured_image %}
+                    <div class="service-image">
+                        <img src="{{ service.featured_image.url }}" alt="{{ service.title }}" class="img-fluid">
+                        <div class="service-overlay">
+                            <div class="service-badges">
+                                {% if service.is_featured %}<span class="badge bg-warning"><i class="fas fa-star me-1"></i>Featured</span>{% endif %}
+                                {% if service.difficulty_level %}<span class="badge bg-{{ service.difficulty_level|badge_color }}">{{ service.get_difficulty_level_display }}</span>{% endif %}
+                                {% if service.has_discount %}<span class="badge bg-success"><i class="fas fa-tag me-1"></i>{{ service.discount_percentage }}% OFF</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="service-content">
+                        <div class="service-header mb-3">
+                            <div class="service-type-indicator">
+                                <span class="badge bg-{{ service.service_type }}">{{ service.get_service_type_display }}</span>
+                                <span class="badge bg-light text-dark">{{ service.category.name }}</span>
+                            </div>
+                        </div>
+                        
+                        <h5 class="service-title mb-3">
+                            <a href="{{ service.get_absolute_url }}" class="text-decoration-none">{{ service.title }}</a>
+                        </h5>
+                        
+                        <p class="service-description text-muted mb-3">{{ service.description|truncatewords:15 }}</p>
+                        
+                        <div class="service-footer d-flex justify-content-between align-items-center">
+                            <div class="service-price">
+                                {% if service.price %}
+                                    {% if service.has_discount %}
+                                    <span class="price-current fw-bold text-primary">{{ service.discount_price|currency }}</span>
+                                    {% else %}
+                                    <span class="price-current fw-bold text-primary">{{ service.price|currency }}</span>
+                                    {% endif %}
+                                {% else %}
+                                <span class="price-contact text-muted">Contact for pricing</span>
+                                {% endif %}
+                            </div>
+                            <a href="{{ service.get_absolute_url }}" class="btn btn-{{ service.service_type }} btn-sm">
+                                Learn More <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if service_group.list|length > 6 %}
+        <div class="row">
+            <div class="col-12 text-center">
+                <a href="?type={{ service_group.grouper }}" class="btn btn-outline-{{ service_group.grouper }} btn-lg">
+                    View All {{ service_group.list|length }} {{ service_group.grouper|title }} Services
+                    <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endfor %}
+{% endif %}
+
 <!-- Service Categories -->
-{% if root_categories %}
+{% if root_categories and not current_filters.type %}
 <section class="categories-section py-5 bg-secondary">
     <div class="container">
         <div class="row">
@@ -414,32 +496,174 @@
 
 {% block extra_css %}
 <style>
-/* Featured Services */
-.featured-service-card {
-    background: var(--bg-card);
-    padding: 1rem;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
+/* Service Type Specific Styles */
+:root {
+    /* Service Type Colors */
+    --training-color: #28a745;
+    --development-color: #007bff;
+    --consultation-color: #6f42c1;
+    --installation-color: #fd7e14;
+    --maintenance-color: #dc3545;
+    
+    /* Service Type Light Colors */
+    --training-light: rgba(40, 167, 69, 0.1);
+    --development-light: rgba(0, 123, 255, 0.1);
+    --consultation-light: rgba(111, 66, 193, 0.1);
+    --installation-light: rgba(253, 126, 20, 0.1);
+    --maintenance-light: rgba(220, 53, 69, 0.1);
+}
+
+/* Service Type Navigation */
+.service-type-nav {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.service-type-filters {
+    gap: 0.5rem;
+}
+
+.service-type-filters .btn {
     transition: all 0.3s ease;
+    border-radius: 25px;
+    font-weight: 500;
 }
 
-.featured-service-card:hover {
+.service-type-filters .btn:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.featured-service-card .service-icon {
-    width: 40px;
-    height: 40px;
-    background: var(--gradient-primary);
-    border-radius: 8px;
+/* Service Type Headers */
+.service-type-header {
+    margin-bottom: 3rem;
+}
+
+.service-type-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0 auto;
+    font-size: 2rem;
     color: white;
-    font-size: 1rem;
-    flex-shrink: 0;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* Training Services */
+.service-type-training .service-type-icon,
+.service-type-training .service-icon,
+.btn-training,
+.bg-training {
+    background: var(--training-color) !important;
+    border-color: var(--training-color) !important;
+}
+
+.service-type-training {
+    border-left: 4px solid var(--training-color);
+}
+
+.service-type-training:hover {
+    border-color: var(--training-color);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.2);
+}
+
+.btn-training:hover {
+    background: #218838 !important;
+    border-color: #218838 !important;
+}
+
+/* Development Services */
+.service-type-development .service-type-icon,
+.service-type-development .service-icon,
+.btn-development,
+.bg-development {
+    background: var(--development-color) !important;
+    border-color: var(--development-color) !important;
+}
+
+.service-type-development {
+    border-left: 4px solid var(--development-color);
+}
+
+.service-type-development:hover {
+    border-color: var(--development-color);
+    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.2);
+}
+
+.btn-development:hover {
+    background: #0056b3 !important;
+    border-color: #0056b3 !important;
+}
+
+/* Consultation Services */
+.service-type-consultation .service-type-icon,
+.service-type-consultation .service-icon,
+.btn-consultation,
+.bg-consultation {
+    background: var(--consultation-color) !important;
+    border-color: var(--consultation-color) !important;
+}
+
+.service-type-consultation {
+    border-left: 4px solid var(--consultation-color);
+}
+
+.service-type-consultation:hover {
+    border-color: var(--consultation-color);
+    box-shadow: 0 8px 25px rgba(111, 66, 193, 0.2);
+}
+
+.btn-consultation:hover {
+    background: #5a2d91 !important;
+    border-color: #5a2d91 !important;
+}
+
+/* Installation Services */
+.service-type-installation .service-type-icon,
+.service-type-installation .service-icon,
+.btn-installation,
+.bg-installation {
+    background: var(--installation-color) !important;
+    border-color: var(--installation-color) !important;
+}
+
+.service-type-installation {
+    border-left: 4px solid var(--installation-color);
+}
+
+.service-type-installation:hover {
+    border-color: var(--installation-color);
+    box-shadow: 0 8px 25px rgba(253, 126, 20, 0.2);
+}
+
+.btn-installation:hover {
+    background: #e66100 !important;
+    border-color: #e66100 !important;
+}
+
+/* Maintenance Services */
+.service-type-maintenance .service-type-icon,
+.service-type-maintenance .service-icon,
+.btn-maintenance,
+.bg-maintenance {
+    background: var(--maintenance-color) !important;
+    border-color: var(--maintenance-color) !important;
+}
+
+.service-type-maintenance {
+    border-left: 4px solid var(--maintenance-color);
+}
+
+.service-type-maintenance:hover {
+    border-color: var(--maintenance-color);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.2);
+}
+
+.btn-maintenance:hover {
+    background: #c82333 !important;
+    border-color: #c82333 !important;
 }
 
 /* Service Cards */
@@ -450,12 +674,36 @@
     box-shadow: var(--shadow-sm);
     transition: all 0.3s ease;
     border: 1px solid var(--border-color);
+    position: relative;
 }
 
 .service-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
 }
+
+.service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--primary-color);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.service-card:hover::before {
+    transform: scaleX(1);
+}
+
+/* Service type specific top borders */
+.service-type-training::before { background: var(--training-color); }
+.service-type-development::before { background: var(--development-color); }
+.service-type-consultation::before { background: var(--consultation-color); }
+.service-type-installation::before { background: var(--installation-color); }
+.service-type-maintenance::before { background: var(--maintenance-color); }
 
 .service-image {
     position: relative;
@@ -467,6 +715,11 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.service-card:hover .service-image img {
+    transform: scale(1.05);
 }
 
 .service-overlay {
@@ -483,22 +736,12 @@
     padding: 1.5rem;
 }
 
-.service-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+.service-type-indicator {
+    margin-bottom: 1rem;
 }
 
-.service-icon {
-    width: 50px;
-    height: 50px;
-    background: var(--gradient-primary);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.25rem;
+.service-type-indicator .badge {
+    margin-right: 0.5rem;
 }
 
 .service-title a {
@@ -510,19 +753,82 @@
     color: var(--primary-color);
 }
 
-/* List View */
-.service-list-item {
+/* Service Type Info Boxes */
+.service-type-info {
+    background: rgba(0,0,0,0.02);
+    padding: 0.75rem;
+    border-radius: 8px;
+    border-left: 3px solid var(--border-color);
+}
+
+.service-type-training .service-type-info {
+    border-left-color: var(--training-color);
+    background: var(--training-light);
+}
+
+.service-type-development .service-type-info {
+    border-left-color: var(--development-color);
+    background: var(--development-light);
+}
+
+.service-type-consultation .service-type-info {
+    border-left-color: var(--consultation-color);
+    background: var(--consultation-light);
+}
+
+.service-type-installation .service-type-info {
+    border-left-color: var(--installation-color);
+    background: var(--installation-light);
+}
+
+.service-type-maintenance .service-type-info {
+    border-left-color: var(--maintenance-color);
+    background: var(--maintenance-light);
+}
+
+/* Featured Service Cards */
+.featured-service-card {
     background: var(--bg-card);
+    padding: 1rem;
     border-radius: var(--border-radius-lg);
-    padding: 1.5rem;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
     transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-.service-list-item:hover {
+.featured-service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--primary-color);
+}
+
+.featured-service-card.service-type-training::before { background: var(--training-color); }
+.featured-service-card.service-type-development::before { background: var(--development-color); }
+.featured-service-card.service-type-consultation::before { background: var(--consultation-color); }
+.featured-service-card.service-type-installation::before { background: var(--installation-color); }
+.featured-service-card.service-type-maintenance::before { background: var(--maintenance-color); }
+
+.featured-service-card:hover {
+    transform: translateY(-3px);
     box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+}
+
+.featured-service-card .service-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+    flex-shrink: 0;
 }
 
 /* Category Cards */
@@ -555,13 +861,127 @@
     font-size: 1.5rem;
 }
 
-/* View Toggle */
-.view-toggle .btn {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Service Type Specific Buttons */
+.btn-training,
+.btn-development,
+.btn-consultation,
+.btn-installation,
+.btn-maintenance {
+    color: white;
+    border: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-training {
+    color: var(--training-color);
+    border-color: var(--training-color);
+}
+
+.btn-outline-training:hover {
+    background: var(--training-color);
+    border-color: var(--training-color);
+    color: white;
+}
+
+.btn-outline-development {
+    color: var(--development-color);
+    border-color: var(--development-color);
+}
+
+.btn-outline-development:hover {
+    background: var(--development-color);
+    border-color: var(--development-color);
+    color: white;
+}
+
+.btn-outline-consultation {
+    color: var(--consultation-color);
+    border-color: var(--consultation-color);
+}
+
+.btn-outline-consultation:hover {
+    background: var(--consultation-color);
+    border-color: var(--consultation-color);
+    color: white;
+}
+
+.btn-outline-installation {
+    color: var(--installation-color);
+    border-color: var(--installation-color);
+}
+
+.btn-outline-installation:hover {
+    background: var(--installation-color);
+    border-color: var(--installation-color);
+    color: white;
+}
+
+.btn-outline-maintenance {
+    color: var(--maintenance-color);
+    border-color: var(--maintenance-color);
+}
+
+.btn-outline-maintenance:hover {
+    background: var(--maintenance-color);
+    border-color: var(--maintenance-color);
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .service-type-filters {
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .service-type-filters span {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .service-type-header {
+        margin-bottom: 2rem;
+    }
+    
+    .service-type-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .service-content {
+        padding: 1.25rem;
+    }
+    
+    .featured-service-card {
+        margin-bottom: 1rem;
+    }
+    
+    .service-footer {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+
+/* Animation Enhancements */
+@keyframes serviceTypeFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+.service-type-icon:hover {
+    animation: serviceTypeFloat 1s ease-in-out infinite;
+}
+
+/* Service Type Gradient Backgrounds */
+.services-by-type:nth-child(odd) {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.services-by-type:nth-child(even) {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
 }
 
 /* Discount Badges */
@@ -572,131 +992,239 @@
 .discount-badge .badge {
     font-size: 0.7rem;
 }
-
-/* Responsive */
-@media (max-width: 768px) {
-    .service-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-    
-    .service-footer {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-    
-    .header-stats {
-        text-align: center;
-        margin-top: 2rem;
-    }
-    
-    .filters-section .row > div {
-        margin-bottom: 1rem;
-    }
-    
-    .featured-service-card {
-        margin-bottom: 1rem;
-    }
-}
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-submit filters
-    const filterSelects = document.querySelectorAll('#servicesFilter select, #servicesFilter input[type="number"]');
-    filterSelects.forEach(element => {
-        element.addEventListener('change', function() {
-            document.getElementById('servicesFilter').submit();
-        });
-    });
-    
-    // View toggle
-    const gridViewBtn = document.getElementById('gridView');
-    const listViewBtn = document.getElementById('listView');
-    const gridContainer = document.getElementById('servicesGrid');
-    const listContainer = document.getElementById('servicesList');
-    
-    if (gridViewBtn && listViewBtn) {
-        gridViewBtn.addEventListener('click', function() {
-            gridViewBtn.classList.add('active');
-            listViewBtn.classList.remove('active');
-            gridContainer.classList.remove('d-none');
-            listContainer.classList.add('d-none');
-            localStorage.setItem('servicesView', 'grid');
-        });
-        
-        listViewBtn.addEventListener('click', function() {
-            listViewBtn.classList.add('active');
-            gridViewBtn.classList.remove('active');
-            gridContainer.classList.add('d-none');
-            listContainer.classList.remove('d-none');
-            localStorage.setItem('servicesView', 'list');
-        });
-        
-        // Restore saved view
-        const savedView = localStorage.getItem('servicesView');
-        if (savedView === 'list') {
-            listViewBtn.click();
-        }
-    }
-    
-    // Search on Enter
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-submit filters
+        const filterSelects = document.querySelectorAll('#servicesFilter select, #servicesFilter input[type="number"]');
+        filterSelects.forEach(element => {
+            element.addEventListener('change', function() {
                 document.getElementById('servicesFilter').submit();
-            }
+            });
         });
-    }
-    
-    // Enhanced price formatting for currency inputs
-    const priceInputs = document.querySelectorAll('input[name="min_price"], input[name="max_price"]');
-    priceInputs.forEach(input => {
-        input.addEventListener('blur', function() {
-            if (this.value && !isNaN(this.value)) {
-                // Format the number with commas
-                const formatted = parseFloat(this.value).toLocaleString();
-                console.log(`Price formatted: ${this.value} -> ${formatted}`);
-            }
+        
+        // Service type navigation
+        const serviceTypeButtons = document.querySelectorAll('[data-type]');
+        serviceTypeButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const serviceType = this.getAttribute('data-type');
+                
+                // Update the type filter
+                const typeFilter = document.getElementById('typeFilter');
+                if (typeFilter) {
+                    typeFilter.value = serviceType;
+                }
+                
+                // Submit the form or navigate
+                window.location.href = this.href;
+            });
         });
+        
+        // Smooth scroll for service type sections
+        function scrollToServiceType(type) {
+            const section = document.querySelector(`[data-service-type="${type}"]`);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+        
+        // Enhanced service card interactions
+        const serviceCards = document.querySelectorAll('.service-card');
+        serviceCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                // Add subtle animation to service type indicator
+                const indicator = this.querySelector('.service-type-indicator');
+                if (indicator) {
+                    indicator.style.transform = 'scale(1.05)';
+                }
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                const indicator = this.querySelector('.service-type-indicator');
+                if (indicator) {
+                    indicator.style.transform = 'scale(1)';
+                }
+            });
+        });
+        
+        // Service type filter analytics
+        const typeFilters = document.querySelectorAll('.service-type-filters .btn');
+        typeFilters.forEach(button => {
+            button.addEventListener('click', function() {
+                const serviceType = this.textContent.trim();
+                console.log(`Service type filter clicked: ${serviceType}`);
+                
+                // Add loading state
+                this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>' + serviceType;
+                this.disabled = true;
+                
+                // Remove loading state after navigation
+                setTimeout(() => {
+                    this.disabled = false;
+                }, 1000);
+            });
+        });
+        
+        // Enhanced price formatting
+        const priceInputs = document.querySelectorAll('input[name="min_price"], input[name="max_price"]');
+        priceInputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value && !isNaN(this.value)) {
+                    const formatted = parseFloat(this.value).toLocaleString();
+                    console.log(`Price formatted: ${this.value} -> KSH ${formatted}`);
+                }
+            });
+        });
+        
+        // Service type icon animations
+        const serviceTypeIcons = document.querySelectorAll('.service-type-icon');
+        serviceTypeIcons.forEach(icon => {
+            icon.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1) rotate(5deg)';
+            });
+            
+            icon.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1) rotate(0deg)';
+            });
+        });
+        
+        // Intersection Observer for service cards animation
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all service cards
+        serviceCards.forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+        
+        // Service comparison functionality
+        let selectedServices = [];
+        
+        window.toggleServiceComparison = function(serviceId, serviceName) {
+            if (selectedServices.includes(serviceId)) {
+                selectedServices = selectedServices.filter(id => id !== serviceId);
+            } else if (selectedServices.length < 3) {
+                selectedServices.push(serviceId);
+            } else {
+                alert('You can compare maximum 3 services at a time.');
+                return;
+            }
+            
+            updateComparisonUI();
+        };
+        
+        function updateComparisonUI() {
+            const compareBtn = document.getElementById('compareServices');
+            if (compareBtn) {
+                if (selectedServices.length > 1) {
+                    compareBtn.style.display = 'block';
+                    compareBtn.textContent = `Compare ${selectedServices.length} Services`;
+                } else {
+                    compareBtn.style.display = 'none';
+                }
+            }
+        }
+        
+        // Service type specific interactions
+        window.getServiceTypeInfo = function(type) {
+            const typeInfo = {
+                training: {
+                    icon: 'fas fa-graduation-cap',
+                    color: '#28a745',
+                    description: 'Comprehensive training programs to enhance your skills',
+                    features: ['Expert Instructors', 'Hands-on Practice', 'Certification', 'Flexible Schedule']
+                },
+                development: {
+                    icon: 'fas fa-code',
+                    color: '#007bff',
+                    description: 'Custom software solutions tailored to your business needs',
+                    features: ['Custom Development', 'Modern Technologies', 'Scalable Solutions', 'Full Support']
+                },
+                consultation: {
+                    icon: 'fas fa-handshake',
+                    color: '#6f42c1',
+                    description: 'Expert guidance to optimize your technology strategy',
+                    features: ['Strategic Planning', 'Expert Advice', 'Implementation Support', 'Best Practices']
+                },
+                installation: {
+                    icon: 'fas fa-cogs',
+                    color: '#fd7e14',
+                    description: 'Professional setup and configuration services',
+                    features: ['Professional Setup', 'Configuration', 'Testing', 'Documentation']
+                },
+                maintenance: {
+                    icon: 'fas fa-tools',
+                    color: '#dc3545',
+                    description: 'Ongoing support to keep your systems running smoothly',
+                    features: ['24/7 Monitoring', 'Regular Updates', 'Issue Resolution', 'Performance Optimization']
+                }
+            };
+            
+            return typeInfo[type] || null;
+        };
     });
-    
-    // Smooth scroll to services section when coming from homepage
-    if (window.location.hash === '#services') {
-        const servicesSection = document.querySelector('.services-grid');
-        if (servicesSection) {
-            setTimeout(() => {
-                servicesSection.scrollIntoView({ behavior: 'smooth' });
-            }, 500);
+
+    // Helper function for currency formatting
+    function formatKSH(amount) {
+        return new Intl.NumberFormat('en-KE', {
+            style: 'currency',
+            currency: 'KES',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(amount).replace('KES', 'KSH');
+    }
+
+    // Service type filtering with smooth transitions
+    function filterServicesByType(type) {
+        const allServices = document.querySelectorAll('.service-item');
+        
+        allServices.forEach(service => {
+            const serviceType = service.getAttribute('data-service-type');
+            
+            if (!type || serviceType === type) {
+                service.style.display = 'block';
+                service.style.opacity = '1';
+                service.style.transform = 'translateY(0)';
+            } else {
+                service.style.opacity = '0';
+                service.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    service.style.display = 'none';
+                }, 300);
+            }
+        });
+    }
+
+    // Enhanced service card click tracking
+    function trackServiceClick(serviceId, serviceName, serviceType) {
+        console.log(`Service clicked: ${serviceName} (${serviceType}) - ID: ${serviceId}`);
+        
+        // Track analytics if available
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'service_view', {
+                service_id: serviceId,
+                service_name: serviceName,
+                service_type: serviceType
+            });
         }
     }
-});
-
-// Helper function for price formatting
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-KE', {
-        style: 'currency',
-        currency: 'KES',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(amount).replace('KES', 'KSH');
-}
-
-// Add loading state for form submissions
-document.addEventListener('submit', function(e) {
-    if (e.target.id === 'servicesFilter') {
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            submitBtn.disabled = true;
-        }
-    }
-});
 </script>
 {% endblock %}

@@ -1,0 +1,551 @@
+/* Service Type Specific Styles */
+
+:root {
+    /* Service Type Colors */
+    --training-color: #28a745;
+    --development-color: #007bff;
+    --consultation-color: #6f42c1;
+    --installation-color: #fd7e14;
+    --maintenance-color: #dc3545;
+    
+    /* Service Type Light Colors */
+    --training-light: rgba(40, 167, 69, 0.1);
+    --development-light: rgba(0, 123, 255, 0.1);
+    --consultation-light: rgba(111, 66, 193, 0.1);
+    --installation-light: rgba(253, 126, 20, 0.1);
+    --maintenance-light: rgba(220, 53, 69, 0.1);
+}
+
+/* Service Type Navigation */
+.service-type-nav {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.service-type-filters {
+    gap: 0.5rem;
+}
+
+.service-type-filters .btn {
+    transition: all 0.3s ease;
+    border-radius: 25px;
+    font-weight: 500;
+}
+
+.service-type-filters .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Service Type Headers */
+.service-type-header {
+    margin-bottom: 3rem;
+}
+
+.service-type-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 2rem;
+    color: white;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* Training Services */
+.service-type-training .service-type-icon,
+.service-type-training .service-icon,
+.btn-training,
+.bg-training {
+    background: var(--training-color) !important;
+    border-color: var(--training-color) !important;
+}
+
+.service-type-training {
+    border-left: 4px solid var(--training-color);
+    background: var(--training-light);
+}
+
+.service-type-training:hover {
+    border-color: var(--training-color);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.2);
+}
+
+.btn-training:hover {
+    background: #218838 !important;
+    border-color: #218838 !important;
+}
+
+/* Development Services */
+.service-type-development .service-type-icon,
+.service-type-development .service-icon,
+.btn-development,
+.bg-development {
+    background: var(--development-color) !important;
+    border-color: var(--development-color) !important;
+}
+
+.service-type-development {
+    border-left: 4px solid var(--development-color);
+    background: var(--development-light);
+}
+
+.service-type-development:hover {
+    border-color: var(--development-color);
+    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.2);
+}
+
+.btn-development:hover {
+    background: #0056b3 !important;
+    border-color: #0056b3 !important;
+}
+
+/* Consultation Services */
+.service-type-consultation .service-type-icon,
+.service-type-consultation .service-icon,
+.btn-consultation,
+.bg-consultation {
+    background: var(--consultation-color) !important;
+    border-color: var(--consultation-color) !important;
+}
+
+.service-type-consultation {
+    border-left: 4px solid var(--consultation-color);
+    background: var(--consultation-light);
+}
+
+.service-type-consultation:hover {
+    border-color: var(--consultation-color);
+    box-shadow: 0 8px 25px rgba(111, 66, 193, 0.2);
+}
+
+.btn-consultation:hover {
+    background: #5a2d91 !important;
+    border-color: #5a2d91 !important;
+}
+
+/* Installation Services */
+.service-type-installation .service-type-icon,
+.service-type-installation .service-icon,
+.btn-installation,
+.bg-installation {
+    background: var(--installation-color) !important;
+    border-color: var(--installation-color) !important;
+}
+
+.service-type-installation {
+    border-left: 4px solid var(--installation-color);
+    background: var(--installation-light);
+}
+
+.service-type-installation:hover {
+    border-color: var(--installation-color);
+    box-shadow: 0 8px 25px rgba(253, 126, 20, 0.2);
+}
+
+.btn-installation:hover {
+    background: #e66100 !important;
+    border-color: #e66100 !important;
+}
+
+/* Maintenance Services */
+.service-type-maintenance .service-type-icon,
+.service-type-maintenance .service-icon,
+.btn-maintenance,
+.bg-maintenance {
+    background: var(--maintenance-color) !important;
+    border-color: var(--maintenance-color) !important;
+}
+
+.service-type-maintenance {
+    border-left: 4px solid var(--maintenance-color);
+    background: var(--maintenance-light);
+}
+
+.service-type-maintenance:hover {
+    border-color: var(--maintenance-color);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.2);
+}
+
+.btn-maintenance:hover {
+    background: #c82333 !important;
+    border-color: #c82333 !important;
+}
+
+/* Service Cards */
+.service-card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    position: relative;
+}
+
+.service-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
+}
+
+.service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--primary-color);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.service-card:hover::before {
+    transform: scaleX(1);
+}
+
+/* Training specific styling */
+.service-type-training::before {
+    background: var(--training-color);
+}
+
+.service-type-development::before {
+    background: var(--development-color);
+}
+
+.service-type-consultation::before {
+    background: var(--consultation-color);
+}
+
+.service-type-installation::before {
+    background: var(--installation-color);
+}
+
+.service-type-maintenance::before {
+    background: var(--maintenance-color);
+}
+
+.service-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.service-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.service-card:hover .service-image img {
+    transform: scale(1.05);
+}
+
+.service-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.3), transparent);
+    padding: 1rem;
+}
+
+.service-content {
+    padding: 1.5rem;
+}
+
+.service-type-indicator {
+    margin-bottom: 1rem;
+}
+
+.service-type-indicator .badge {
+    margin-right: 0.5rem;
+}
+
+.service-title a {
+    color: var(--text-primary);
+    transition: color 0.3s ease;
+}
+
+.service-title a:hover {
+    color: var(--primary-color);
+}
+
+/* Service Type Info Boxes */
+.service-type-info {
+    background: rgba(0,0,0,0.02);
+    padding: 0.75rem;
+    border-radius: 8px;
+    border-left: 3px solid var(--border-color);
+}
+
+.service-type-training .service-type-info {
+    border-left-color: var(--training-color);
+    background: var(--training-light);
+}
+
+.service-type-development .service-type-info {
+    border-left-color: var(--development-color);
+    background: var(--development-light);
+}
+
+.service-type-consultation .service-type-info {
+    border-left-color: var(--consultation-color);
+    background: var(--consultation-light);
+}
+
+.service-type-installation .service-type-info {
+    border-left-color: var(--installation-color);
+    background: var(--installation-light);
+}
+
+.service-type-maintenance .service-type-info {
+    border-left-color: var(--maintenance-color);
+    background: var(--maintenance-light);
+}
+
+/* Featured Service Cards */
+.featured-service-card {
+    background: var(--bg-card);
+    padding: 1rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.featured-service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--primary-color);
+}
+
+.featured-service-card.service-type-training::before {
+    background: var(--training-color);
+}
+
+.featured-service-card.service-type-development::before {
+    background: var(--development-color);
+}
+
+.featured-service-card.service-type-consultation::before {
+    background: var(--consultation-color);
+}
+
+.featured-service-card.service-type-installation::before {
+    background: var(--installation-color);
+}
+
+.featured-service-card.service-type-maintenance::before {
+    background: var(--maintenance-color);
+}
+
+.featured-service-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+.featured-service-card .service-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.service-type-badge {
+    margin-bottom: 0.5rem;
+}
+
+/* Category Cards */
+.category-card {
+    background: var(--bg-card);
+    padding: 2rem;
+    border-radius: var(--border-radius-xl);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.category-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--gradient-primary);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    color: white;
+    font-size: 1.5rem;
+}
+
+/* Discount Badges */
+.discount-badge {
+    margin-top: 0.25rem;
+}
+
+.discount-badge .badge {
+    font-size: 0.7rem;
+}
+
+/* Service Type Specific Buttons */
+.btn-training,
+.btn-development,
+.btn-consultation,
+.btn-installation,
+.btn-maintenance {
+    color: white;
+    border: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-training {
+    color: var(--training-color);
+    border-color: var(--training-color);
+}
+
+.btn-outline-training:hover {
+    background: var(--training-color);
+    border-color: var(--training-color);
+    color: white;
+}
+
+.btn-outline-development {
+    color: var(--development-color);
+    border-color: var(--development-color);
+}
+
+.btn-outline-development:hover {
+    background: var(--development-color);
+    border-color: var(--development-color);
+    color: white;
+}
+
+.btn-outline-consultation {
+    color: var(--consultation-color);
+    border-color: var(--consultation-color);
+}
+
+.btn-outline-consultation:hover {
+    background: var(--consultation-color);
+    border-color: var(--consultation-color);
+    color: white;
+}
+
+.btn-outline-installation {
+    color: var(--installation-color);
+    border-color: var(--installation-color);
+}
+
+.btn-outline-installation:hover {
+    background: var(--installation-color);
+    border-color: var(--installation-color);
+    color: white;
+}
+
+.btn-outline-maintenance {
+    color: var(--maintenance-color);
+    border-color: var(--maintenance-color);
+}
+
+.btn-outline-maintenance:hover {
+    background: var(--maintenance-color);
+    border-color: var(--maintenance-color);
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .service-type-filters {
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .service-type-filters span {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .service-type-header {
+        margin-bottom: 2rem;
+    }
+    
+    .service-type-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .service-content {
+        padding: 1.25rem;
+    }
+    
+    .featured-service-card {
+        margin-bottom: 1rem;
+    }
+    
+    .service-footer {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .service-type-filters .btn {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    .service-type-header h2 {
+        font-size: 1.75rem;
+    }
+    
+    .service-type-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+}
+
+/* Animation Enhancements */
+@keyframes serviceTypeFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+.service-type-icon:hover {
+    animation: serviceTypeFloat 1s ease-in-out infinite;
+}
+
+/* Service Type Gradient Backgrounds */
+.services-by-type:nth-child(odd) {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.services-by-type:nth-child(even) {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
