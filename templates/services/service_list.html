@@ -30,8 +30,8 @@
                         <small>Services Available</small>
                     </div>
                     <div class="stat-item p-3 bg-white bg-opacity-10 rounded">
-                        <div class="h4 fw-bold mb-1">{{ categories.count }}+</div>
-                        <small>Categories</small>
+                        <div class="h4 fw-bold mb-1">{{ root_categories|length }}+</div>
+                        <small>Main Categories</small>
                     </div>
                 </div>
             </div>
@@ -55,8 +55,10 @@
                 <div class="col-lg-2 col-md-6 mb-3 mb-lg-0">
                     <select class="form-select" name="category" id="categoryFilter">
                         <option value="">All Categories</option>
-                        {% for category in categories %}
-                        <option value="{{ category.id }}" {% if current_filters.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                        {% for category in all_categories %}
+                        <option value="{{ category.id }}" {% if current_filters.category == category.id|stringformat:"s" %}selected{% endif %}>
+                            {% if category.parent %}{{ category.get_full_name }}{% else %}{{ category.name }}{% endif %}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -139,16 +141,18 @@
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="mb-1"><a href="{{ service.get_absolute_url }}" class="text-decoration-none">{{ service.title }}</a></h6>
-                            <small class="text-muted">{{ service.category.name }}</small>
+                            <small class="text-muted">{{ service.category.get_full_name }}</small>
                             <div class="service-price">
                                 {% if service.price %}
-                                <span class="fw-bold text-primary">{{ service.price|currency }}</span>
-                                {% if service.discount_price and service.discount_price < service.price %}
-                                <span class="text-muted text-decoration-line-through ms-2 small">{{ service.price|currency }}</span>
-                                <div class="discount-badge mt-1">
-                                    <span class="badge bg-success small">Save {{ service.discount_amount|currency }}</span>
-                                </div>
-                                {% endif %}
+                                    {% if service.has_discount %}
+                                    <span class="fw-bold text-primary">{{ service.discount_price|currency }}</span>
+                                    <span class="text-muted text-decoration-line-through ms-2 small">{{ service.price|currency }}</span>
+                                    <div class="discount-badge mt-1">
+                                        <span class="badge bg-success small">Save {{ service.discount_amount|currency }}</span>
+                                    </div>
+                                    {% else %}
+                                    <span class="fw-bold text-primary">{{ service.price|currency }}</span>
+                                    {% endif %}
                                 {% else %}
                                 <span class="text-muted">Contact for pricing</span>
                                 {% endif %}
@@ -192,6 +196,7 @@
                             <div class="service-badges">
                                 {% if service.is_featured %}<span class="badge bg-warning"><i class="fas fa-star me-1"></i>Featured</span>{% endif %}
                                 {% if service.difficulty_level %}<span class="badge bg-{{ service.difficulty_level|badge_color }}">{{ service.get_difficulty_level_display }}</span>{% endif %}
+                                {% if service.has_discount %}<span class="badge bg-success"><i class="fas fa-tag me-1"></i>{{ service.discount_percentage }}% OFF</span>{% endif %}
                             </div>
                         </div>
                     </div>
@@ -202,7 +207,7 @@
                             <div class="service-icon mb-2">
                                 <i class="{{ service.icon|default:'fas fa-cogs' }}"></i>
                             </div>
-                            <span class="badge bg-primary">{{ service.category.name }}</span>
+                            <span class="badge bg-primary">{{ service.category.get_full_name }}</span>
                         </div>
                         
                         <h5 class="service-title mb-3">
@@ -234,7 +239,7 @@
                         <div class="service-footer d-flex justify-content-between align-items-center">
                             <div class="service-price">
                                 {% if service.price %}
-                                    {% if service.discount_price and service.discount_price < service.price %}
+                                    {% if service.has_discount %}
                                     <span class="price-current fw-bold text-primary">{{ service.discount_price|currency }}</span>
                                     <span class="price-original text-muted text-decoration-line-through ms-2 small">{{ service.price|currency }}</span>
                                     {% else %}
@@ -268,7 +273,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="service-badges mb-2">
-                            <span class="badge bg-primary">{{ service.category.name }}</span>
+                            <span class="badge bg-primary">{{ service.category.get_full_name }}</span>
                             {% if service.is_featured %}<span class="badge bg-warning">Featured</span>{% endif %}
                             {% if service.service_type %}<span class="badge bg-info">{{ service.get_service_type_display }}</span>{% endif %}
                         </div>
@@ -295,7 +300,7 @@
                     <div class="col-md-3 text-md-end">
                         <div class="service-price mb-3">
                             {% if service.price %}
-                                {% if service.discount_price and service.discount_price < service.price %}
+                                {% if service.has_discount %}
                                 <div class="price-current h5 fw-bold text-primary mb-0">{{ service.discount_price|currency }}</div>
                                 <div class="price-original text-muted text-decoration-line-through">{{ service.price|currency }}</div>
                                 <div class="discount-badge">
@@ -360,7 +365,7 @@
 </section>
 
 <!-- Service Categories -->
-{% if categories %}
+{% if root_categories %}
 <section class="categories-section py-5 bg-secondary">
     <div class="container">
         <div class="row">
@@ -370,16 +375,19 @@
             </div>
         </div>
         <div class="row">
-            {% for category in categories %}
+            {% for category in root_categories %}
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="category-card" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:150 }}">
                     <div class="category-icon mb-3"><i class="{{ category.icon|default:'fas fa-folder' }}"></i></div>
                     <h5 class="category-title mb-2">{{ category.name }}</h5>
                     <p class="category-description text-muted mb-3">{{ category.description|truncatewords:15 }}</p>
                     <div class="category-stats mb-3">
-                        <span class="badge bg-primary">{{ category.services.count }} service{{ category.services.count|pluralize }}</span>
+                        <span class="badge bg-primary">{{ category.get_total_services_count }} service{{ category.get_total_services_count|pluralize }}</span>
+                        {% if category.has_subcategories %}
+                        <span class="badge bg-secondary">{{ category.get_subcategories.count }} subcategor{{ category.get_subcategories.count|pluralize:"y,ies" }}</span>
+                        {% endif %}
                     </div>
-                    <a href="{% url 'services:category_list' slug=category.slug %}" class="btn btn-outline-primary btn-sm">View Services <i class="fas fa-arrow-right ms-1"></i></a>
+                    <a href="{% url 'services:category_detail' slug=category.slug %}" class="btn btn-outline-primary btn-sm">View Services <i class="fas fa-arrow-right ms-1"></i></a>
                 </div>
             </div>
             {% endfor %}
@@ -643,31 +651,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 document.getElementById('servicesFilter').submit();
-            }
-        });
-    }
-    
-    // AJAX Search Suggestions (optional enhancement)
-    let searchTimeout;
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            const query = this.value;
-            
-            if (query.length > 2) {
-                searchTimeout = setTimeout(() => {
-                    // Check if the search URL exists before making the request
-                    const searchUrl = '{% url "services:service_search" %}';
-                    if (searchUrl && searchUrl !== '') {
-                        fetch(`${searchUrl}?q=${encodeURIComponent(query)}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                // Implement search suggestions dropdown here if needed
-                                console.log('Search results:', data.results);
-                            })
-                            .catch(error => console.error('Search error:', error));
-                    }
-                }, 300);
             }
         });
     }

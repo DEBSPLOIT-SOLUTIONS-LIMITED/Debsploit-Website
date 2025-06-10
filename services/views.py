@@ -45,10 +45,15 @@ class ServiceListView(ListView):
                 Q(category__name__icontains=search_query)
             )
         
-        # Filter by category
+        # Filter by category (includes subcategories)
         category_id = self.request.GET.get('category')
         if category_id:
-            queryset = queryset.filter(category_id=category_id)
+            try:
+                selected_category = ServiceCategory.objects.get(id=category_id)
+                # Get all services in this category and its subcategories
+                queryset = selected_category.get_all_services()
+            except ServiceCategory.DoesNotExist:
+                pass
         
         # Filter by service type
         service_type = self.request.GET.get('type')
@@ -78,8 +83,16 @@ class ServiceListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
+        # Get all categories for filter dropdown (hierarchical)
+        all_categories = ServiceCategory.objects.filter(is_active=True).order_by('parent__name', 'name')
+        context['all_categories'] = all_categories
+        
+        # Get root categories for display section
+        context['root_categories'] = ServiceCategory.objects.filter(
+            parent=None, is_active=True
+        ).order_by('order', 'name')
+        
         # Filter options
-        context['categories'] = ServiceCategory.objects.filter(is_active=True)
         context['service_types'] = Service.SERVICE_TYPES
         context['difficulty_levels'] = Service.DIFFICULTY_LEVELS
         
@@ -97,15 +110,16 @@ class ServiceListView(ListView):
         # Featured services
         context['featured_services'] = Service.objects.filter(
             is_active=True, is_featured=True
-        )[:3]
+        ).select_related('category')[:3]
         
         return context
-
 class ServiceDetailView(DetailView):
-    """Detailed view of a service"""
+    """Display detailed view of a service"""
     model = Service
     template_name = 'services/service_detail.html'
     context_object_name = 'service'
+    slug_field = 'slug'
+    slug_url_kwarg = 'slug'
     
     def get_queryset(self):
         return Service.objects.filter(is_active=True).select_related('category')
@@ -114,41 +128,55 @@ class ServiceDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         service = self.object
         
-        # Related course
+        # Get related services from same category or parent category
+        related_services = Service.objects.filter(
+            Q(category=service.category) | Q(category__parent=service.category.parent),
+            is_active=True
+        ).exclude(id=service.id).select_related('category')[:3]
+        
+        context['related_services'] = related_services
+        
+        # Get course if this service has one
         try:
-            context['course'] = Course.objects.get(service=service)
+            context['course'] = service.course
         except Course.DoesNotExist:
             context['course'] = None
         
-        # User enrollment status
-        if self.request.user.is_authenticated:
-            context['user_enrollment'] = Enrollment.objects.filter(
-                user=self.request.user,
-                course__service=service
-            ).first()
+        # Check if user is enrolled (if authenticated)
+        if self.request.user.is_authenticated and context['course']:
+            try:
+                context['user_enrollment'] = Enrollment.objects.get(
+                    user=self.request.user,
+                    course=context['course']
+                )
+            except Enrollment.DoesNotExist:
+                context['user_enrollment'] = None
         
-        # Service reviews
+        # Get reviews
         reviews = ServiceReview.objects.filter(
-            service=service, is_verified=True
+            service=service
         ).select_related('user').order_by('-created_at')
-        context['reviews'] = reviews[:10]
+        
+        context['reviews'] = reviews[:5]  # Show first 5 reviews
         context['reviews_count'] = reviews.count()
         
-        # Average rating breakdown
-        rating_counts = reviews.values('rating').annotate(count=Count('rating'))
-        context['rating_breakdown'] = {r['rating']: r['count'] for r in rating_counts}
+        # Rating breakdown
+        if reviews.exists():
+            rating_breakdown = {}
+            for i in range(1, 6):
+                rating_breakdown[i] = reviews.filter(rating=i).count()
+            context['rating_breakdown'] = rating_breakdown
         
-        # Related services
-        context['related_services'] = Service.objects.filter(
-            category=service.category,
-            is_active=True
-        ).exclude(id=service.id)[:4]
-        
-        # Review form (for enrolled users)
-        if (self.request.user.is_authenticated and 
-            context.get('user_enrollment') and 
-            not reviews.filter(user=self.request.user).exists()):
-            context['review_form'] = ServiceReviewForm()
+        # Review form for authenticated users
+        if self.request.user.is_authenticated:
+            # Check if user already reviewed this service
+            user_has_reviewed = ServiceReview.objects.filter(
+                service=service,
+                user=self.request.user
+            ).exists()
+            
+            if not user_has_reviewed:
+                context['review_form'] = True
         
         return context
 

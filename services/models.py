@@ -2,31 +2,124 @@ from django.db import models
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from ckeditor_uploader.fields import RichTextUploadingField
+from mptt.models import MPTTModel, TreeForeignKey
 
 User = get_user_model()
 
 class ServiceCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(unique=True, blank=True)  # Added missing slug field
+    slug = models.SlugField(unique=True, blank=True)
     description = models.TextField()
     icon = models.CharField(max_length=50, help_text="Font Awesome icon class")
-    color = models.CharField(max_length=7, default="#0066FF", help_text="Hex color code")
+    color = models.CharField(max_length=7, default="#0070f2", help_text="Hex color code")
+    
+    # Add parent field first without MPTT
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    
+    # Meta fields
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # SEO fields
+    meta_title = models.CharField(max_length=200, blank=True, help_text="SEO title (leave blank to use name)")
+    meta_description = models.TextField(max_length=300, blank=True, help_text="SEO description")
     
     class Meta:
         ordering = ['order', 'name']
         verbose_name_plural = "Service Categories"
     
     def __str__(self):
-        return self.name
+        return self.get_full_name()
     
     def save(self, *args, **kwargs):
         if not self.slug:
             from django.utils.text import slugify
-            self.slug = slugify(self.name)
+            base_slug = slugify(self.name)
+            slug = base_slug
+            counter = 1
+            
+            # Ensure slug uniqueness
+            while ServiceCategory.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            
+            self.slug = slug
+            
         super().save(*args, **kwargs)
+    
+    def get_absolute_url(self):
+        return reverse('services:category_detail', kwargs={'slug': self.slug})
+    
+    def get_full_name(self):
+        """Return the full category path like 'Technology > Web Development > Frontend'"""
+        if self.parent:
+            return f"{self.parent.get_full_name()} > {self.name}"
+        return self.name
+    
+    def get_breadcrumb_path(self):
+        """Return list of categories from root to current for breadcrumbs"""
+        path = []
+        current = self
+        while current:
+            path.insert(0, current)
+            current = current.parent
+        return path
+    
+    def get_all_services(self):
+        """Get all services in this category and its subcategories"""
+        def get_descendants(category):
+            descendants = [category]
+            for child in category.children.all():
+                descendants.extend(get_descendants(child))
+            return descendants
+        
+        descendant_categories = get_descendants(self)
+        return Service.objects.filter(category__in=descendant_categories, is_active=True)
+    
+    def get_direct_services_count(self):
+        """Get count of services directly in this category (not subcategories)"""
+        return self.services.filter(is_active=True).count()
+    
+    def get_total_services_count(self):
+        """Get total count of services in this category and all subcategories"""
+        return self.get_all_services().count()
+    
+    def get_subcategories(self):
+        """Get direct subcategories only"""
+        return self.children.filter(is_active=True).order_by('order', 'name')
+    
+    def has_subcategories(self):
+        """Check if this category has any subcategories"""
+        return self.get_subcategories().exists()
+    
+    def is_root_category(self):
+        """Check if this is a root category (no parent)"""
+        return self.parent is None
+    
+    def get_root_category(self):
+        """Get the root category of this category"""
+        current = self
+        while current.parent:
+            current = current.parent
+        return current
+    
+    def get_siblings(self):
+        """Get sibling categories (same parent level)"""
+        if self.parent:
+            return self.parent.children.filter(is_active=True).exclude(pk=self.pk)
+        else:
+            return ServiceCategory.objects.filter(parent=None, is_active=True).exclude(pk=self.pk)
+    
+    def get_level(self):
+        """Get the depth level of this category"""
+        level = 0
+        current = self.parent
+        while current:
+            level += 1
+            current = current.parent
+        return level
 
 class Service(models.Model):
     DIFFICULTY_LEVELS = (
@@ -54,7 +147,7 @@ class Service(models.Model):
     # Pricing
     price = models.DecimalField(max_digits=10, decimal_places=2)
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    currency = models.CharField(max_length=3, default='KES')
+    currency = models.CharField(max_length=3, default='KSH')
     
     # Duration and capacity
     duration_weeks = models.PositiveIntegerField(help_text="Duration in weeks")
@@ -87,14 +180,52 @@ class Service(models.Model):
     
     @property
     def effective_price(self):
-        return self.discount_price if self.discount_price else self.price
+        """Return the effective price (discount price if available, otherwise regular price)."""
+        return self.discount_price if self.has_discount else self.price
     
     @property
     def discount_percentage(self):
+        """Calculate the discount percentage."""
         if self.discount_price and self.price > self.discount_price:
             return round(((self.price - self.discount_price) / self.price) * 100)
         return 0
-
+    
+    @property
+    def discount_amount(self):
+        """Calculate the discount amount if there's a discount price."""
+        if self.discount_price and self.price > self.discount_price:
+            return self.price - self.discount_price
+        return 0
+    
+    @property
+    def has_discount(self):
+        """Check if service has a discount."""
+        return self.discount_price and self.price > self.discount_price
+    
+    @property
+    def original_price(self):
+        """Return the original price for template compatibility."""
+        if self.has_discount:
+            return self.price
+        return None
+    
+    @property
+    def duration(self):
+        """Return formatted duration string."""
+        if not self.duration_weeks:
+            return "Self-paced"
+        
+        weeks = self.duration_weeks
+        if weeks == 1:
+            return "1 week"
+        elif weeks < 4:
+            return f"{weeks} weeks"
+        elif weeks < 52:
+            months = round(weeks / 4.33)
+            return f"{months} month{'s' if months != 1 else ''}"
+        else:
+            years = round(weeks / 52)
+            return f"{years} year{'s' if years != 1 else ''}"
 class Course(models.Model):
     service = models.OneToOneField(Service, on_delete=models.CASCADE, related_name='course')
     instructor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='courses_taught')
@@ -346,4 +477,3 @@ class CompanyInfo(models.Model):
     
     def __str__(self):
         return self.name
-
