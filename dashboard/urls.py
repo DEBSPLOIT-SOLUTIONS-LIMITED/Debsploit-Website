@@ -1,12 +1,13 @@
 from django.urls import path
 from . import views
+from accounts.views import UserProfileView
 
 app_name = 'dashboard'
 
 urlpatterns = [
     # Main dashboard pages
     path('', views.DashboardHomeView.as_view(), name='home'),
-    path('profile/', views.ProfileView.as_view(), name='profile'),
+    path('profile/', UserProfileView.as_view(), name='profile'),
     path('courses/', views.CoursesView.as_view(), name='courses'),
     path('tasks/', views.TasksView.as_view(), name='tasks'),
     path('tasks/<int:pk>/', views.TaskDetailView.as_view(), name='task_detail'),

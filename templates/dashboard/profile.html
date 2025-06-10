@@ -163,6 +163,19 @@
         border-bottom: 2px solid var(--border-color);
         padding-bottom: 0.5rem;
     }
+    
+    .form-control {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    }
 </style>
 {% endblock %}
 
@@ -343,14 +356,14 @@
                     </a>
                 </div>
                 <div class="card-body">
-                    {% with portfolio_projects=object.projectportfolio_set.all|slice:":4" %}
+                    {% with portfolio_projects=object.portfolio_projects.all|slice:":4" %}
                         {% if portfolio_projects %}
                             <div class="row">
                                 {% for project in portfolio_projects %}
                                 <div class="col-md-6 mb-3">
                                     <div class="card h-100 border-0 bg-light">
-                                        {% if project.featured_image %}
-                                            <img src="{{ project.featured_image.url }}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                                        {% if project.project_image %}
+                                            <img src="{{ project.project_image.url }}" class="card-img-top" style="height: 150px; object-fit: cover;">
                                         {% endif %}
                                         <div class="card-body">
                                             <h6 class="card-title">{{ project.title }}</h6>
@@ -529,7 +542,7 @@
                                 <label for="{{ form.github_url.id_for_label }}" class="form-label">GitHub URL</label>
                                 {{ form.github_url }}
                                 {% if form.github_url.errors %}
-                                    <div class="text-danger small">{{ form.github_url.errors }}</div>
+                                    <div class="text-danger small">{{ form.github.errors }}</div>
                                 {% endif %}
                             </div>
                             <div class="col-md-4 mb-3">
@@ -641,7 +654,7 @@
                 <div class="card-body">
                     {% comment %}Calculate profile completeness{% endcomment %}
                     {% with completeness=0 %}
-                        {% if object.first_name %}{% with completeness=completeness|add:15 %}{% endwith %}{% endif %}
+                        {% if object.first_name %}{% with completeness=15 %}{% endwith %}{% endif %}
                         {% if object.last_name %}{% with completeness=completeness|add:15 %}{% endwith %}{% endif %}
                         {% if object.bio %}{% with completeness=completeness|add:20 %}{% endwith %}{% endif %}
                         {% if object.profile_picture %}{% with completeness=completeness|add:10 %}{% endwith %}{% endif %}
@@ -682,32 +695,6 @@
 
 {% block extra_js %}
 <script>
-// Add form field styling
-document.addEventListener('DOMContentLoaded', function() {
-    // Add Bootstrap form-control class to all form fields
-    const formFields = document.querySelectorAll('input, select, textarea');
-    formFields.forEach(field => {
-        if (!field.classList.contains('btn') && !field.classList.contains('form-check-input')) {
-            field.classList.add('form-control');
-        }
-    });
-    
-    // Handle file input styling
-    const fileInputs = document.querySelectorAll('input[type="file"]');
-    fileInputs.forEach(input => {
-        input.classList.add('form-control');
-    });
-    
-    // Auto-resize textarea
-    const textareas = document.querySelectorAll('textarea');
-    textareas.forEach(textarea => {
-        textarea.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = this.scrollHeight + 'px';
-        });
-    });
-});
-
 // Profile picture preview
 const profilePictureInput = document.querySelector('input[name="profile_picture"]');
 if (profilePictureInput) {
@@ -742,6 +729,30 @@ document.querySelector('a[href="#profile-form"]')?.addEventListener('click', fun
         behavior: 'smooth',
         block: 'start'
     });
+});
+
+// Form validation and enhancement
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-resize textarea
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+    
+    // Form submission handling
+    const profileForm = document.querySelector('#profile-form form');
+    if (profileForm) {
+        profileForm.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Updating...';
+                submitBtn.disabled = true;
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

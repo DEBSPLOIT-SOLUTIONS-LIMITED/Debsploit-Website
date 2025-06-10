@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django_countries.widgets import CountrySelectWidget
+from phonenumber_field.formfields import PhoneNumberField
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Row, Column, Submit, HTML
 from crispy_forms.bootstrap import FormActions, Tab, TabHolder
@@ -12,6 +14,8 @@ from .models import ProjectPortfolio, DeveloperProfile
 User = get_user_model()
 
 class UserProfileForm(forms.ModelForm):
+    phone = PhoneNumberField(required=False)
+    
     class Meta:
         model = User
         fields = [
@@ -21,13 +25,34 @@ class UserProfileForm(forms.ModelForm):
             'linkedin_url', 'github_url', 'portfolio_url'
         ]
         widgets = {
-            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
-            'bio': forms.Textarea(attrs={'rows': 4}),
-            'address': forms.Textarea(attrs={'rows': 3}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
+            'date_of_birth': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'country': CountrySelectWidget(attrs={'class': 'form-control'}),
+            'city': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'company': forms.TextInput(attrs={'class': 'form-control'}),
+            'job_title': forms.TextInput(attrs={'class': 'form-control'}),
+            'experience_years': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'skill_level': forms.Select(attrs={'class': 'form-control'}),
+            'linkedin_url': forms.URLInput(attrs={'class': 'form-control'}),
+            'github_url': forms.URLInput(attrs={'class': 'form-control'}),
+            'portfolio_url': forms.URLInput(attrs={'class': 'form-control'}),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        # Fix country field
+        self.fields['country'].empty_label = "(Select Country)"
+        self.fields['country'].required = False
+        
+        # Fix phone field
+        self.fields['phone'].widget.attrs.update({'class': 'form-control'})
+        
         self.helper = FormHelper()
         self.helper.form_method = 'post'
         self.helper.form_enctype = 'multipart/form-data'
@@ -97,8 +122,15 @@ class DeveloperProfileForm(forms.ModelForm):
             'dribbble_url', 'is_accepting_projects', 'next_available_date'
         ]
         widgets = {
-            'next_available_date': forms.DateInput(attrs={'type': 'date'}),
+            'hourly_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'availability': forms.Select(attrs={'class': 'form-control'}),
+            'years_of_experience': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'next_available_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'preferred_project_types': forms.CheckboxSelectMultiple(),
+            'portfolio_website': forms.URLInput(attrs={'class': 'form-control'}),
+            'behance_url': forms.URLInput(attrs={'class': 'form-control'}),
+            'dribbble_url': forms.URLInput(attrs={'class': 'form-control'}),
+            'is_accepting_projects': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -141,7 +173,17 @@ class UserSkillForm(forms.ModelForm):
         model = UserSkill
         fields = ['name', 'category', 'proficiency', 'years_experience']
         widgets = {
-            'name': forms.TextInput(attrs={'placeholder': 'e.g., Python, JavaScript, Adobe Photoshop'}),
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., Python, JavaScript, Adobe Photoshop'
+            }),
+            'category': forms.Select(attrs={'class': 'form-control'}),
+            'proficiency': forms.Select(attrs={'class': 'form-control'}),
+            'years_experience': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0,
+                'max': 50
+            }),
         }
     
     def __init__(self, *args, **kwargs):
@@ -184,10 +226,22 @@ class ProjectPortfolioForm(forms.ModelForm):
             'technologies', 'start_date', 'end_date', 'is_public', 'is_featured'
         ]
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 4}),
-            'technologies': forms.TextInput(attrs={'placeholder': 'e.g., Python, Django, React, PostgreSQL'}),
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'type': 'date'}),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'project_type': forms.Select(attrs={'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'github_url': forms.URLInput(attrs={'class': 'form-control'}),
+            'live_demo_url': forms.URLInput(attrs={'class': 'form-control'}),
+            'project_image': forms.FileInput(attrs={'class': 'form-control'}),
+            'project_file': forms.FileInput(attrs={'class': 'form-control'}),
+            'technologies': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., Python, Django, React, PostgreSQL'
+            }),
+            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'is_public': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_featured': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -262,15 +316,19 @@ class TaskApplicationForm(forms.ModelForm):
         fields = ['cover_letter', 'proposed_timeline', 'proposed_budget']
         widgets = {
             'cover_letter': forms.Textarea(attrs={
+                'class': 'form-control',
                 'rows': 6,
                 'placeholder': 'Explain why you are the best fit for this task. Include your relevant experience and approach.'
             }),
             'proposed_timeline': forms.Textarea(attrs={
+                'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Describe your proposed timeline for completing this task.'
             }),
             'proposed_budget': forms.NumberInput(attrs={
-                'placeholder': 'Your proposed budget (optional)'
+                'class': 'form-control',
+                'placeholder': 'Your proposed budget (optional)',
+                'step': '0.01'
             }),
         }
     
@@ -296,9 +354,13 @@ class TaskSubmissionForm(forms.ModelForm):
         fields = ['description', 'files', 'github_link', 'demo_link']
         widgets = {
             'description': forms.Textarea(attrs={
+                'class': 'form-control',
                 'rows': 6,
                 'placeholder': 'Describe what you have accomplished and how you approached the task.'
             }),
+            'files': forms.FileInput(attrs={'class': 'form-control'}),
+            'github_link': forms.URLInput(attrs={'class': 'form-control'}),
+            'demo_link': forms.URLInput(attrs={'class': 'form-control'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -325,10 +387,14 @@ class TaskSubmissionForm(forms.ModelForm):
 class ContactAdminForm(forms.Form):
     subject = forms.CharField(
         max_length=200,
-        widget=forms.TextInput(attrs={'placeholder': 'Brief subject of your message'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Brief subject of your message'
+        })
     )
     message = forms.CharField(
         widget=forms.Textarea(attrs={
+            'class': 'form-control',
             'rows': 5,
             'placeholder': 'Your message to the admin team'
         })
@@ -340,7 +406,8 @@ class ContactAdminForm(forms.Form):
             ('high', 'High'),
             ('urgent', 'Urgent'),
         ],
-        initial='medium'
+        initial='medium',
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
     
     def __init__(self, *args, **kwargs):

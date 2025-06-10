@@ -29,12 +29,10 @@ class User(AbstractUser):
     profile_picture = models.ImageField(upload_to='profile_pics/', default='profile_pics/default.jpg')
     date_of_birth = models.DateField(null=True, blank=True)
     
-    # Fix the CountryField configuration
+    # Fixed CountryField configuration
     country = CountryField(
-        blank_label='(Select Country)',  # This fixes the BlankChoiceIterator issue
         blank=True, 
-        null=True,
-        default=''  # Add default empty value
+        null=True
     )
     
     city = models.CharField(max_length=100, blank=True)
