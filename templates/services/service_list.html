@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load core_filters %}
+{% load service_filters %}
 
 {% block title %}Services - {{ site_settings.site_name }}{% endblock %}
 {% block meta_description %}Explore our comprehensive technology training and professional services designed to accelerate your digital transformation.{% endblock %}
@@ -95,10 +95,10 @@
                 <div class="col-md-6">
                     <div class="row">
                         <div class="col-6">
-                            <input type="number" class="form-control" name="min_price" value="{{ current_filters.min_price }}" placeholder="Min Price" min="0">
+                            <input type="number" class="form-control" name="min_price" value="{{ current_filters.min_price }}" placeholder="Min Price (KSH)" min="0">
                         </div>
                         <div class="col-6">
-                            <input type="number" class="form-control" name="max_price" value="{{ current_filters.max_price }}" placeholder="Max Price" min="0">
+                            <input type="number" class="form-control" name="max_price" value="{{ current_filters.max_price }}" placeholder="Max Price (KSH)" min="0">
                         </div>
                     </div>
                 </div>
@@ -110,6 +110,7 @@
                         {% if current_filters.category %}<span class="badge bg-secondary me-1 mb-1">Category</span>{% endif %}
                         {% if current_filters.type %}<span class="badge bg-info me-1 mb-1">Type</span>{% endif %}
                         {% if current_filters.difficulty %}<span class="badge bg-warning me-1 mb-1">Level</span>{% endif %}
+                        {% if current_filters.min_price or current_filters.max_price %}<span class="badge bg-success me-1 mb-1">Price Range</span>{% endif %}
                         <a href="{% url 'services:service_list' %}" class="btn btn-sm btn-outline-danger">Clear All</a>
                     </div>
                     {% endif %}
@@ -136,11 +137,21 @@
                         <div class="service-icon me-3">
                             <i class="{{ service.icon|default:'fas fa-cogs' }}"></i>
                         </div>
-                        <div>
+                        <div class="flex-grow-1">
                             <h6 class="mb-1"><a href="{{ service.get_absolute_url }}" class="text-decoration-none">{{ service.title }}</a></h6>
                             <small class="text-muted">{{ service.category.name }}</small>
                             <div class="service-price">
+                                {% if service.price %}
                                 <span class="fw-bold text-primary">{{ service.price|currency }}</span>
+                                {% if service.discount_price and service.discount_price < service.price %}
+                                <span class="text-muted text-decoration-line-through ms-2 small">{{ service.price|currency }}</span>
+                                <div class="discount-badge mt-1">
+                                    <span class="badge bg-success small">Save {{ service.discount_amount|currency }}</span>
+                                </div>
+                                {% endif %}
+                                {% else %}
+                                <span class="text-muted">Contact for pricing</span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -202,7 +213,7 @@
                         
                         <div class="service-meta mb-3">
                             <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ service.duration|default:"Self-paced" }}</small>
+                                <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ service.duration_weeks|format_duration }}</small>
                                 {% if service.average_rating > 0 %}
                                 <div class="rating">
                                     <span class="text-warning">
@@ -223,10 +234,12 @@
                         <div class="service-footer d-flex justify-content-between align-items-center">
                             <div class="service-price">
                                 {% if service.price %}
-                                <span class="price-current fw-bold text-primary">{{ service.price|currency }}</span>
-                                {% if service.original_price and service.original_price > service.price %}
-                                <span class="price-original text-muted text-decoration-line-through ms-2">{{ service.original_price|currency }}</span>
-                                {% endif %}
+                                    {% if service.discount_price and service.discount_price < service.price %}
+                                    <span class="price-current fw-bold text-primary">{{ service.discount_price|currency }}</span>
+                                    <span class="price-original text-muted text-decoration-line-through ms-2 small">{{ service.price|currency }}</span>
+                                    {% else %}
+                                    <span class="price-current fw-bold text-primary">{{ service.price|currency }}</span>
+                                    {% endif %}
                                 {% else %}
                                 <span class="price-contact text-muted">Contact for pricing</span>
                                 {% endif %}
@@ -262,7 +275,7 @@
                         <h5 class="mb-2"><a href="{{ service.get_absolute_url }}" class="text-decoration-none">{{ service.title }}</a></h5>
                         <p class="text-muted mb-2">{{ service.description|truncatewords:30 }}</p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ service.duration|default:"Self-paced" }}</small>
+                            <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ service.duration_weeks|format_duration }}</small>
                             {% if service.average_rating > 0 %}
                             <div class="rating">
                                 <span class="text-warning">
@@ -282,10 +295,15 @@
                     <div class="col-md-3 text-md-end">
                         <div class="service-price mb-3">
                             {% if service.price %}
-                            <div class="price-current h5 fw-bold text-primary mb-0">{{ service.price|currency }}</div>
-                            {% if service.original_price and service.original_price > service.price %}
-                            <div class="price-original text-muted text-decoration-line-through">{{ service.original_price|currency }}</div>
-                            {% endif %}
+                                {% if service.discount_price and service.discount_price < service.price %}
+                                <div class="price-current h5 fw-bold text-primary mb-0">{{ service.discount_price|currency }}</div>
+                                <div class="price-original text-muted text-decoration-line-through">{{ service.price|currency }}</div>
+                                <div class="discount-badge">
+                                    <span class="badge bg-success">Save {{ service.discount_amount|currency }}</span>
+                                </div>
+                                {% else %}
+                                <div class="price-current h5 fw-bold text-primary mb-0">{{ service.price|currency }}</div>
+                                {% endif %}
                             {% else %}
                             <div class="price-contact text-muted">Contact for pricing</div>
                             {% endif %}
@@ -359,7 +377,7 @@
                     <h5 class="category-title mb-2">{{ category.name }}</h5>
                     <p class="category-description text-muted mb-3">{{ category.description|truncatewords:15 }}</p>
                     <div class="category-stats mb-3">
-                        <span class="badge bg-primary">{{ category.service_set.count }} service{{ category.service_set.count|pluralize }}</span>
+                        <span class="badge bg-primary">{{ category.services.count }} service{{ category.services.count|pluralize }}</span>
                     </div>
                     <a href="{% url 'services:category_list' slug=category.slug %}" class="btn btn-outline-primary btn-sm">View Services <i class="fas fa-arrow-right ms-1"></i></a>
                 </div>
@@ -413,6 +431,7 @@
     justify-content: center;
     color: white;
     font-size: 1rem;
+    flex-shrink: 0;
 }
 
 /* Service Cards */
@@ -537,6 +556,15 @@
     justify-content: center;
 }
 
+/* Discount Badges */
+.discount-badge {
+    margin-top: 0.25rem;
+}
+
+.discount-badge .badge {
+    font-size: 0.7rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .service-header {
@@ -557,6 +585,10 @@
     }
     
     .filters-section .row > div {
+        margin-bottom: 1rem;
+    }
+    
+    .featured-service-card {
         margin-bottom: 1rem;
     }
 }
@@ -624,16 +656,63 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (query.length > 2) {
                 searchTimeout = setTimeout(() => {
-                    fetch(`{% url 'services:service_search' %}?q=${encodeURIComponent(query)}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            // Implement search suggestions dropdown here if needed
-                            console.log('Search results:', data.results);
-                        })
-                        .catch(error => console.error('Search error:', error));
+                    // Check if the search URL exists before making the request
+                    const searchUrl = '{% url "services:service_search" %}';
+                    if (searchUrl && searchUrl !== '') {
+                        fetch(`${searchUrl}?q=${encodeURIComponent(query)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                // Implement search suggestions dropdown here if needed
+                                console.log('Search results:', data.results);
+                            })
+                            .catch(error => console.error('Search error:', error));
+                    }
                 }, 300);
             }
         });
+    }
+    
+    // Enhanced price formatting for currency inputs
+    const priceInputs = document.querySelectorAll('input[name="min_price"], input[name="max_price"]');
+    priceInputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value && !isNaN(this.value)) {
+                // Format the number with commas
+                const formatted = parseFloat(this.value).toLocaleString();
+                console.log(`Price formatted: ${this.value} -> ${formatted}`);
+            }
+        });
+    });
+    
+    // Smooth scroll to services section when coming from homepage
+    if (window.location.hash === '#services') {
+        const servicesSection = document.querySelector('.services-grid');
+        if (servicesSection) {
+            setTimeout(() => {
+                servicesSection.scrollIntoView({ behavior: 'smooth' });
+            }, 500);
+        }
+    }
+});
+
+// Helper function for price formatting
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-KE', {
+        style: 'currency',
+        currency: 'KES',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount).replace('KES', 'KSH');
+}
+
+// Add loading state for form submissions
+document.addEventListener('submit', function(e) {
+    if (e.target.id === 'servicesFilter') {
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            submitBtn.disabled = true;
+        }
     }
 });
 </script>

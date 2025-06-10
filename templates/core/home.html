@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load service_filters %}
 
 {% block title %}{{ site_settings.site_name }} - {{ site_settings.site_tagline }}{% endblock %}
 
@@ -120,7 +121,13 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="service-price">
                             {% if service.price %}
-                            <span class="fw-bold text-primary">${{ service.price }}</span>
+                            <span class="fw-bold text-primary">{{ service.price|currency }}</span>
+                            {% if service.discount_price and service.discount_price < service.price %}
+                            <span class="text-muted text-decoration-line-through ms-2">{{ service.price|currency }}</span>
+                            <div class="discount-badge">
+                                <span class="badge bg-success">Save {{ service.discount_amount|currency }}</span>
+                            </div>
+                            {% endif %}
                             {% else %}
                             <span class="text-muted">Contact for pricing</span>
                             {% endif %}
@@ -134,7 +141,7 @@
             {% endfor %}
         </div>
         <div class="text-center mt-4">
-            <a href="{% url 'core:services' %}" class="btn btn-primary btn-lg">
+            <a href="{% url 'services:service_list' %}" class="btn btn-primary btn-lg">
                 <i class="fas fa-th-large me-2"></i>View All Services
             </a>
         </div>
