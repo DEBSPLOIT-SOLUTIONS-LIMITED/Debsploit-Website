@@ -83,7 +83,7 @@ class Service(models.Model):
         return self.title
     
     def get_absolute_url(self):
-        return reverse('services:detail', kwargs={'slug': self.slug})
+        return reverse('services:service_detail', kwargs={'slug': self.slug})
     
     @property
     def effective_price(self):
