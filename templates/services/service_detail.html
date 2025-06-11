@@ -69,7 +69,7 @@
                     <div class="pricing-header mb-3">
                         {% if service.price %}
                         <div class="price-display">
-                            <span class="current-price h2 fw-bold text-primary mb-0">{{ service.price|currency }}</span>
+                            <span class="current-price h2 fw-bold text-primary mb-0">{{ service.discount_price|currency }}</span>
                             {% if service.original_price and service.original_price > service.price %}
                             <span class="original-price text-muted text-decoration-line-through ms-2">{{ service.original_price|currency }}</span>
                             <div class="discount-badge">
