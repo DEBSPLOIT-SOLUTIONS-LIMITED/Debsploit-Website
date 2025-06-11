@@ -121,7 +121,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="service-price">
                             {% if service.price %}
-                            <span class="fw-bold text-primary">{{ service.price|currency }}</span>
+                            <span class="fw-bold text-primary">{{ service.discount_price|currency }}</span>
                             {% if service.discount_price and service.discount_price < service.price %}
                             <span class="text-muted text-decoration-line-through ms-2">{{ service.price|currency }}</span>
                             <div class="discount-badge">
