@@ -1,8 +1,7 @@
-Django==5.2.2
+Django==4.2.7
 Pillow==11.2.1
-dj-database-url==3.0.0
 django-mptt==0.17.0
-psycopg2==2.9.10
+mysqlclient==2.2.7
 django-crispy-forms==2.0
 crispy-bootstrap5==0.7
 django-allauth==0.57.0
