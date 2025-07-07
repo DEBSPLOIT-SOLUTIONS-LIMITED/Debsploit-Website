@@ -19,4 +19,4 @@ redis==5.0.1
 django-countries==7.5.1
 django-phonenumber-field==7.1.0
 phonenumbers==8.13.26
-PyMySQL==1.1.1
+pymysql==1.1.1
