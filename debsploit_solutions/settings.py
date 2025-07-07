@@ -87,15 +87,22 @@ TEMPLATES = [
 WSGI_APPLICATION = 'debsploit_solutions.wsgi.application'
 
 # Database
-database_url = config('DATABASE_URL')
-
 DATABASES = {
-    'default': dj_database_url.parse(
-        database_url,
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': config('DB_NAME', default='debsploit_db'),
+        'USER': config('DB_USER', default='root'),
+        'PASSWORD': config('DB_PASSWORD', default=''),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='3306'),
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'autocommit': True,
+        },
+        'CONN_MAX_AGE': 0,
+        'CONN_HEALTH_CHECKS': False,
+    }
+}   
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
