@@ -1,0 +1,265 @@
+{% extends 'admin_ui/base.html' %}
+{% load static %}
+
+{% block title %}Settings | Admin Dashboard{% endblock %}
+
+{% block main_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">System Settings</h1>
+    <button class="btn btn-success">
+        <i class="fas fa-save me-2"></i>Save All Changes
+    </button>
+</div>
+
+<div class="row">
+    <!-- General Settings -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">General Settings</h5>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="siteName" class="form-label">Site Name</label>
+                                <input type="text" class="form-control" id="siteName" value="Debsploit Solutions">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="siteTagline" class="form-label">Site Tagline</label>
+                                <input type="text" class="form-control" id="siteTagline" value="Cybersecurity & Programming Training">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="siteDescription" class="form-label">Site Description</label>
+                        <textarea class="form-control" id="siteDescription" rows="3">Professional cybersecurity training, programming courses, and IT consulting services.</textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="adminEmail" class="form-label">Admin Email</label>
+                                <input type="email" class="form-control" id="adminEmail" value="admin@debsploitsolutions.com">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="supportEmail" class="form-label">Support Email</label>
+                                <input type="email" class="form-control" id="supportEmail" value="support@debsploitsolutions.com">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- API Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">API Settings</h5>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="apiVersion" class="form-label">API Version</label>
+                                <input type="text" class="form-control" id="apiVersion" value="v1" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="apiBaseUrl" class="form-label">API Base URL</label>
+                                <input type="url" class="form-control" id="apiBaseUrl" value="http://127.0.0.1:8001/api/v1/" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="apiDocsEnabled" checked>
+                                <label class="form-check-label" for="apiDocsEnabled">
+                                    Enable API Documentation
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="apiThrottling" checked>
+                                <label class="form-check-label" for="apiThrottling">
+                                    Enable API Throttling
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Email Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Email Settings</h5>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="smtpHost" class="form-label">SMTP Host</label>
+                                <input type="text" class="form-control" id="smtpHost" placeholder="smtp.gmail.com">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="smtpPort" class="form-label">SMTP Port</label>
+                                <input type="number" class="form-control" id="smtpPort" value="587">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="smtpUsername" class="form-label">SMTP Username</label>
+                                <input type="text" class="form-control" id="smtpUsername">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="smtpPassword" class="form-label">SMTP Password</label>
+                                <input type="password" class="form-control" id="smtpPassword">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="smtpTls" checked>
+                        <label class="form-check-label" for="smtpTls">
+                            Use TLS
+                        </label>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Info -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">System Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Django Version:</strong><br>
+                    <span class="text-muted">5.2.4</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Python Version:</strong><br>
+                    <span class="text-muted">3.13</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Database:</strong><br>
+                    <span class="text-muted">SQLite</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Debug Mode:</strong><br>
+                    <span class="badge bg-warning">Enabled</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Server Status:</strong><br>
+                    <span class="badge bg-success">Running</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary">
+                        <i class="fas fa-sync me-2"></i>Clear Cache
+                    </button>
+                    <button class="btn btn-outline-info">
+                        <i class="fas fa-database me-2"></i>Backup Database
+                    </button>
+                    <button class="btn btn-outline-warning">
+                        <i class="fas fa-file-export me-2"></i>Export Data
+                    </button>
+                    <button class="btn btn-outline-success">
+                        <i class="fas fa-check me-2"></i>Run Health Check
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <small class="text-muted">2 hours ago</small>
+                            <p class="mb-0">System backup completed</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-info"></div>
+                        <div class="timeline-content">
+                            <small class="text-muted">1 day ago</small>
+                            <p class="mb-0">API documentation updated</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-warning"></div>
+                        <div class="timeline-content">
+                            <small class="text-muted">3 days ago</small>
+                            <p class="mb-0">Security scan completed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 30px;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 17px;
+    width: 2px;
+    height: calc(100% + 8px);
+    background-color: #e5e7eb;
+}
+</style>
+{% endblock %}

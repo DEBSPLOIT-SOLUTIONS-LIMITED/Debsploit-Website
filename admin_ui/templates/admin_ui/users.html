@@ -1,0 +1,83 @@
+{% extends 'admin_ui/base.html' %}
+
+{% block title %}Users - Debsploit Solutions Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Users Management</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="/admin/accounts/user/" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-plus"></i> Add User (Django Admin)
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>User Type</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.get_full_name|default:user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ user.user_type|capfirst }}</span>
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                            {% if user.is_verified %}
+                                <span class="badge bg-primary">Verified</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="/admin/accounts/user/{{ user.id }}/change/" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No users found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <h5>API Endpoints for Users</h5>
+    <div class="card">
+        <div class="card-body">
+            <ul class="list-unstyled">
+                <li><strong>List Users:</strong> <code>GET /api/v1/users/</code></li>
+                <li><strong>Create User:</strong> <code>POST /api/v1/users/</code></li>
+                <li><strong>Get User Profile:</strong> <code>GET /api/v1/users/me/</code></li>
+                <li><strong>Update Profile:</strong> <code>PUT /api/v1/users/me/</code></li>
+                <li><strong>Change Password:</strong> <code>POST /api/v1/users/change_password/</code></li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

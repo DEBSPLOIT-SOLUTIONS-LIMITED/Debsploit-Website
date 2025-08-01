@@ -1,0 +1,215 @@
+{% extends 'admin_ui/base.html' %}
+
+{% block title %}Dashboard - Debsploit Solutions Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard</h1>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ total_users }}</h4>
+                        <p class="card-text">Total Users</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ total_services }}</h4>
+                        <p class="card-text">Total Services</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-cogs fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ total_posts }}</h4>
+                        <p class="card-text">Blog Posts</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-blog fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">API</h4>
+                        <p class="card-text">System Status</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-server fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Users</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_users %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Joined</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in recent_users %}
+                                <tr>
+                                    <td>{{ user.get_full_name|default:user.username }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No users yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Blog Posts</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_posts %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for post in recent_posts %}
+                                <tr>
+                                    <td>{{ post.title|truncatechars:30 }}</td>
+                                    <td>{{ post.author.get_full_name }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if post.status == 'published' %}success{% else %}warning{% endif %}">
+                                            {{ post.status|capfirst }}
+                                        </span>
+                                    </td>
+                                    <td>{{ post.created_at|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No blog posts yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Information -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">API Endpoints</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Authentication</h6>
+                        <ul class="list-unstyled">
+                            <li><code>POST /api/v1/auth/login/</code></li>
+                            <li><code>POST /api/v1/auth/refresh/</code></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Users & Accounts</h6>
+                        <ul class="list-unstyled">
+                            <li><code>GET /api/v1/users/</code></li>
+                            <li><code>POST /api/v1/users/</code></li>
+                            <li><code>GET /api/v1/users/me/</code></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Services</h6>
+                        <ul class="list-unstyled">
+                            <li><code>GET /api/v1/services/</code></li>
+                            <li><code>GET /api/v1/categories/</code></li>
+                            <li><code>POST /api/v1/enrollments/</code></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <h6>Blog</h6>
+                        <ul class="list-unstyled">
+                            <li><code>GET /api/v1/posts/</code></li>
+                            <li><code>POST /api/v1/posts/</code></li>
+                            <li><code>GET /api/v1/categories/</code></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-8">
+                        <h6>Documentation</h6>
+                        <div class="btn-group" role="group">
+                            <a href="/api/docs/" class="btn btn-outline-primary">
+                                <i class="fas fa-book"></i> Swagger UI
+                            </a>
+                            <a href="/api/redoc/" class="btn btn-outline-info">
+                                <i class="fas fa-file-alt"></i> ReDoc
+                            </a>
+                            <a href="/swagger/" class="btn btn-outline-secondary">
+                                <i class="fas fa-code"></i> API Schema
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

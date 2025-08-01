@@ -1,0 +1,197 @@
+{% extends 'admin_ui/base.html' %}
+{% load static %}
+
+{% block title %}Contact Messages | Admin Dashboard{% endblock %}
+
+{% block main_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Contact Messages</h1>
+    <div class="btn-group" role="group">
+        <button type="button" class="btn btn-outline-primary active">All Messages</button>
+        <button type="button" class="btn btn-outline-primary">Unread</button>
+        <button type="button" class="btn btn-outline-primary">Replied</button>
+    </div>
+</div>
+
+<!-- Contact Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Messages</h6>
+                        <h2 class="mb-0">{{ contacts.count }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-envelope fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Unread</h6>
+                        <h2 class="mb-0">0</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-envelope-open fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Replied</h6>
+                        <h2 class="mb-0">0</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-reply fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">This Month</h6>
+                        <h2 class="mb-0">0</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Messages Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">All Contact Messages</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Subject</th>
+                        <th>Message</th>
+                        <th>Status</th>
+                        <th>Received</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for contact in contacts %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-2">
+                                    <span class="badge bg-secondary rounded-pill">{{ contact.name|first|upper }}</span>
+                                </div>
+                                <strong>{{ contact.name }}</strong>
+                            </div>
+                        </td>
+                        <td>
+                            <a href="mailto:{{ contact.email }}" class="text-decoration-none">
+                                {{ contact.email }}
+                            </a>
+                        </td>
+                        <td>
+                            <strong>{{ contact.subject|truncatechars:30 }}</strong>
+                        </td>
+                        <td>
+                            <span title="{{ contact.message }}">
+                                {{ contact.message|truncatechars:50 }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if contact.status == 'new' %}
+                                <span class="badge bg-warning">New</span>
+                            {% elif contact.status == 'read' %}
+                                <span class="badge bg-info">Read</span>
+                            {% elif contact.status == 'replied' %}
+                                <span class="badge bg-success">Replied</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ contact.status|title }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ contact.created_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button class="btn btn-outline-primary" title="View" data-bs-toggle="modal" data-bs-target="#viewMessageModal{{ contact.id }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <a href="mailto:{{ contact.email }}?subject=Re: {{ contact.subject }}" class="btn btn-outline-success" title="Reply">
+                                    <i class="fas fa-reply"></i>
+                                </a>
+                                <button class="btn btn-outline-danger" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- View Message Modal -->
+                    <div class="modal fade" id="viewMessageModal{{ contact.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Message from {{ contact.name }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <strong>From:</strong> {{ contact.name }} &lt;{{ contact.email }}&gt;
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Subject:</strong> {{ contact.subject }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Received:</strong> {{ contact.created_at|date:"F d, Y \a\t H:i" }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Message:</strong>
+                                        <div class="mt-2 p-3 bg-light rounded">
+                                            {{ contact.message|linebreaks }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <a href="mailto:{{ contact.email }}?subject=Re: {{ contact.subject }}" class="btn btn-primary">
+                                        <i class="fas fa-reply me-2"></i>Reply
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="fas fa-envelope fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No contact messages found.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

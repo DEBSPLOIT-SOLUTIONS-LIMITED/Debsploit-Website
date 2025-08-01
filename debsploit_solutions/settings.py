@@ -29,8 +29,12 @@ INSTALLED_APPS = [
     'django.contrib.humanize',  
     
     # Third party apps
-    'crispy_forms',
-    'crispy_bootstrap5',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
+    'drf_yasg',
+    'drf_spectacular',
+    'django_filters',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -39,7 +43,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.github',  
     'ckeditor',
     'ckeditor_uploader',
-    'widget_tweaks',
     'django_extensions',
     'corsheaders',  
     'whitenoise.runserver_nostatic', 
@@ -50,6 +53,7 @@ INSTALLED_APPS = [
     'blog',
     'dashboard',
     'core',
+    'admin_ui',  # Custom admin UI
 ]
 
 MIDDLEWARE = [
@@ -67,10 +71,11 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'debsploit_solutions.urls'
 
+# Templates configuration kept minimal for admin UI only
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'admin_ui' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -78,8 +83,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'core.context_processors.global_context',
-             
             ],
         },
     },
@@ -91,17 +94,15 @@ WSGI_APPLICATION = 'debsploit_solutions.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME', default='debsploit_db'),
+        'NAME': config('DB_NAME', default='debsploit_solutions'),
         'USER': config('DB_USER', default='root'),
         'PASSWORD': config('DB_PASSWORD', default=''),
         'HOST': config('DB_HOST', default='localhost'),
         'PORT': config('DB_PORT', default='3306'),
         'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',
-            'autocommit': True,
         },
-        'CONN_MAX_AGE': 0,
-        'CONN_HEALTH_CHECKS': False,
     }
 }   
 
@@ -255,10 +256,6 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-# Crispy Forms
-CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
-CRISPY_TEMPLATE_PACK = "bootstrap5"
-
 # CKEditor Settings
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_IMAGE_BACKEND = "pillow"
@@ -400,9 +397,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
@@ -413,7 +411,33 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/hour',
         'user': '1000/hour'
-    }
+    },
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# DRF Spectacular settings for API documentation
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Debsploit Solutions API',
+    'DESCRIPTION': 'API for Debsploit Solutions platform providing cybersecurity training, programming courses, and various IT services.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': '/api/',
+}
+
+# JWT Settings
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
 }
 
 # Logging Configuration
